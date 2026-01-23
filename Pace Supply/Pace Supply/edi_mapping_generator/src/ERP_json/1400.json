@@ -1,0 +1,97 @@
+{
+    "record_number": "1400",
+    "record_purpose": "Summary and control totals for the purchase order transaction",
+    "record_classification": {
+        "record_type_identifier": {
+            "value": "AD",
+            "source": "oracle_standard",
+            "description": "Identifies this record as a summary-level record"
+        },
+        "record_layout_qualifier": {
+            "value": "SLD",
+            "source": "oracle_standard",
+            "description": "Specifies summary layout for transaction totals"
+        }
+    },
+    "fields": {
+        "Total_Line_Item_Count": {
+            "description": "Total number of line items included in the purchase order",
+            "semantic_role": "line_item_count",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "CTT",
+                "element": "01",
+                "name": "Number of Line Items"
+            },
+            "value_type": "inferred",
+            "fixed_value": null
+        },
+        "Total_Quantity": {
+            "description": "Total quantity across all line items in the purchase order",
+            "semantic_role": "total_quantity",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "CTT",
+                "element": "02",
+                "name": "Hash Total"
+            },
+            "value_type": "inferred",
+            "fixed_value": null,
+            "notes": "Meaning depends on trading partner agreement; often sum of PO1 quantities"
+        },
+        "Total_Amount": {
+            "description": "Total monetary amount of the purchase order",
+            "semantic_role": "total_amount",
+            "value_source": "derived",
+            "x12_mapping": null,
+            "value_type": "derived",
+            "fixed_value": null,
+            "notes": "Often derived by ERP as sum of line amounts; not always present in X12"
+        },
+        "Summary_Validation_Status": {
+            "description": "Indicates whether summary totals match calculated values",
+            "semantic_role": "validation_status",
+            "value_source": "derived",
+            "x12_mapping": null,
+            "value_type": "derived",
+            "fixed_value": null,
+            "notes": "Used internally by ERP or validation engine"
+        },
+        "Document_Standard": {
+            "description": "EDI standard governing this transaction",
+            "semantic_role": "edi_standard",
+            "value_source": "constant",
+            "x12_mapping": null,
+            "value_type": "constant",
+            "fixed_value": "X12"
+        },
+        "Org_ID": {
+            "description": "ERP operating unit or organization context",
+            "semantic_role": "erp_context",
+            "value_source": "erp_context",
+            "x12_mapping": null,
+            "value_type": "contextual"
+        },
+        "CONTROL1": {
+            "description": "Reserved summary control field for ERP or customer use",
+            "semantic_role": "reserved_control",
+            "value_source": "vendor_specific",
+            "x12_mapping": null,
+            "value_type": "optional"
+        },
+        "CONTROL2": {
+            "description": "Reserved summary control field for ERP or customer use",
+            "semantic_role": "reserved_control",
+            "value_source": "vendor_specific",
+            "x12_mapping": null,
+            "value_type": "optional"
+        },
+        "CONTROL3": {
+            "description": "Reserved summary control field for ERP or customer use",
+            "semantic_role": "reserved_control",
+            "value_source": "vendor_specific",
+            "x12_mapping": null,
+            "value_type": "optional"
+        }
+    }
+}

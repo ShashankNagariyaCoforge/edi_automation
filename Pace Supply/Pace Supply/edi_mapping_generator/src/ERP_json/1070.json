@@ -1,0 +1,179 @@
+{
+    "record_number": "1070",
+    "record_purpose": "Physical address and geographic details for a previously identified party",
+    "record_classification": {
+        "record_type_identifier": {
+            "value": "PY",
+            "source": "oracle_standard",
+            "description": "Identifies this record as an address-related record"
+        },
+        "record_layout_qualifier": {
+            "value": "TAX",
+            "source": "oracle_standard",
+            "description": "Specifies address detail layout"
+        }
+    },
+    "fields": {
+        "Address_Line_1": {
+            "description": "First line of the street address",
+            "semantic_role": "address_street",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "N3",
+                "element": "01",
+                "name": "Address Information"
+            },
+            "value_type": "inferred",
+            "fixed_value": null
+        },
+        "Address_Line_2": {
+            "description": "Second line of the street address",
+            "semantic_role": "address_street",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "N3",
+                "element": "02",
+                "name": "Address Information"
+            },
+            "value_type": "inferred",
+            "fixed_value": null,
+            "notes": "Optional; may be absent in many EDI documents"
+        },
+        "City_Name": {
+            "description": "City of the address",
+            "semantic_role": "address_city",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "N4",
+                "element": "01",
+                "name": "City Name"
+            },
+            "value_type": "inferred",
+            "fixed_value": null
+        },
+        "State_Province_Code": {
+            "description": "State or province code",
+            "semantic_role": "address_state",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "N4",
+                "element": "02",
+                "name": "State or Province Code"
+            },
+            "value_type": "inferred",
+            "fixed_value": null
+        },
+        "Postal_Code": {
+            "description": "Postal or ZIP code",
+            "semantic_role": "address_postal_code",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "N4",
+                "element": "03",
+                "name": "Postal Code"
+            },
+            "value_type": "inferred",
+            "fixed_value": null
+        },
+        "Country_Code": {
+            "description": "Country code of the address",
+            "semantic_role": "address_country",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "N4",
+                "element": "04",
+                "name": "Country Code"
+            },
+            "value_type": "inferred",
+            "fixed_value": null,
+            "notes": "May be optional for domestic transactions"
+        },
+        "Geographic_Location_Qualifier": {
+            "description": "Qualifier indicating type of geographic location code",
+            "semantic_role": "geographic_qualifier",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "N4",
+                "element": "05",
+                "name": "Location Qualifier"
+            },
+            "value_type": "inferred",
+            "fixed_value": null,
+            "notes": "Rarely used; often blank"
+        },
+        "Geographic_Location_Code": {
+            "description": "Additional geographic location code",
+            "semantic_role": "geographic_identifier",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "N4",
+                "element": "06",
+                "name": "Location Identifier"
+            },
+            "value_type": "inferred",
+            "fixed_value": null,
+            "notes": "Used only if qualifier is present"
+        },
+        "TP_Location_Code": {
+            "description": "ERP-specific trading partner site resolved from address details",
+            "semantic_role": "trading_partner_resolution",
+            "value_source": "erp_lookup",
+            "x12_mapping": {
+                "lookup_keys": [
+                    "N1_01",
+                    "N1_04",
+                    "N3",
+                    "N4"
+                ]
+            },
+            "value_type": "lookup",
+            "fixed_value": null,
+            "notes": "Used to match address to ERP site/location"
+        },
+        "Address_Format_Code": {
+            "description": "Indicates formatting rules for the address",
+            "semantic_role": "address_format",
+            "value_source": "derived",
+            "x12_mapping": null,
+            "value_type": "derived",
+            "fixed_value": null,
+            "notes": "Derived by ERP based on country or localization rules"
+        },
+        "Document_Standard": {
+            "description": "EDI standard governing this record",
+            "semantic_role": "edi_standard",
+            "value_source": "constant",
+            "x12_mapping": null,
+            "value_type": "constant",
+            "fixed_value": "X12"
+        },
+        "Org_ID": {
+            "description": "ERP operating unit or organization context",
+            "semantic_role": "erp_context",
+            "value_source": "erp_context",
+            "x12_mapping": null,
+            "value_type": "contextual"
+        },
+        "CONTROL1": {
+            "description": "Reserved address control field for ERP or customer use",
+            "semantic_role": "reserved_control",
+            "value_source": "vendor_specific",
+            "x12_mapping": null,
+            "value_type": "optional"
+        },
+        "CONTROL2": {
+            "description": "Reserved address control field for ERP or customer use",
+            "semantic_role": "reserved_control",
+            "value_source": "vendor_specific",
+            "x12_mapping": null,
+            "value_type": "optional"
+        },
+        "CONTROL3": {
+            "description": "Reserved address control field for ERP or customer use",
+            "semantic_role": "reserved_control",
+            "value_source": "vendor_specific",
+            "x12_mapping": null,
+            "value_type": "optional"
+        }
+    }
+}

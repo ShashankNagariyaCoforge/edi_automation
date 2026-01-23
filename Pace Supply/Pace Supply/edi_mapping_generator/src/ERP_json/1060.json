@@ -1,0 +1,137 @@
+{
+    "record_number": "1060",
+    "record_purpose": "Identification of parties involved in the purchase order (buyer, seller, ship-to, bill-to, etc.)",
+    "record_classification": {
+        "record_type_identifier": {
+            "value": "PY",
+            "source": "oracle_standard",
+            "description": "Identifies this record as an address/party record"
+        },
+        "record_layout_qualifier": {
+            "value": "CUR",
+            "source": "oracle_standard",
+            "description": "Specifies address header layout"
+        }
+    },
+    "fields": {
+        "Entity_Identifier_Code": {
+            "description": "Identifies the type of party being referenced",
+            "semantic_role": "party_role",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "N1",
+                "element": "01",
+                "name": "Entity Identifier Code"
+            },
+            "value_type": "inferred",
+            "fixed_value": null,
+            "examples": [
+                "ST (Ship To)",
+                "BT (Bill To)",
+                "SU (Supplier)",
+                "BY (Buying Party)"
+            ]
+        },
+        "Party_Name": {
+            "description": "Name of the identified party",
+            "semantic_role": "party_name",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "N1",
+                "element": "02",
+                "name": "Name"
+            },
+            "value_type": "inferred",
+            "fixed_value": null
+        },
+        "Identification_Code_Qualifier": {
+            "description": "Qualifier indicating the type of identification code used",
+            "semantic_role": "party_identifier_qualifier",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "N1",
+                "element": "03",
+                "name": "Identification Code Qualifier"
+            },
+            "value_type": "inferred",
+            "fixed_value": null,
+            "notes": "Examples include '92' (Assigned by Buyer) or 'ZZ' (Mutually Defined)"
+        },
+        "Identification_Code": {
+            "description": "Code that uniquely identifies the party",
+            "semantic_role": "party_identifier",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "N1",
+                "element": "04",
+                "name": "Identification Code"
+            },
+            "value_type": "inferred",
+            "fixed_value": null
+        },
+        "TP_Location_Code": {
+            "description": "ERP-specific trading partner location identifier resolved from party information",
+            "semantic_role": "trading_partner_resolution",
+            "value_source": "erp_lookup",
+            "x12_mapping": {
+                "lookup_keys": [
+                    "N1_01",
+                    "N1_04",
+                    "ISA06",
+                    "ISA08"
+                ]
+            },
+            "value_type": "lookup",
+            "fixed_value": null,
+            "notes": "Used by ERP to map EDI party to internal location/site"
+        },
+        "Party_Function": {
+            "description": "Functional role of the party in the transaction",
+            "semantic_role": "party_function",
+            "value_source": "derived",
+            "x12_mapping": {
+                "segment": "N1",
+                "element": "01"
+            },
+            "value_type": "derived",
+            "fixed_value": null,
+            "notes": "Often derived directly from Entity Identifier Code"
+        },
+        "Document_Standard": {
+            "description": "EDI standard governing this record",
+            "semantic_role": "edi_standard",
+            "value_source": "constant",
+            "x12_mapping": null,
+            "value_type": "constant",
+            "fixed_value": "X12"
+        },
+        "Org_ID": {
+            "description": "ERP operating unit or organization context",
+            "semantic_role": "erp_context",
+            "value_source": "erp_context",
+            "x12_mapping": null,
+            "value_type": "contextual"
+        },
+        "CONTROL1": {
+            "description": "Reserved party control field for ERP or customer use",
+            "semantic_role": "reserved_control",
+            "value_source": "vendor_specific",
+            "x12_mapping": null,
+            "value_type": "optional"
+        },
+        "CONTROL2": {
+            "description": "Reserved party control field for ERP or customer use",
+            "semantic_role": "reserved_control",
+            "value_source": "vendor_specific",
+            "x12_mapping": null,
+            "value_type": "optional"
+        },
+        "CONTROL3": {
+            "description": "Reserved party control field for ERP or customer use",
+            "semantic_role": "reserved_control",
+            "value_source": "vendor_specific",
+            "x12_mapping": null,
+            "value_type": "optional"
+        }
+    }
+}

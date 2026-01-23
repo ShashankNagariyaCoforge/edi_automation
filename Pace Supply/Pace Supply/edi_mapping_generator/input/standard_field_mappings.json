@@ -1,0 +1,92 @@
+{
+    "0010": {
+        "TP Translator Code": "GS02",
+        "Header Identifier (Location Identifier)": "BEG03",
+        "Detail Line Identifier": "",
+        "Sub-Detail Line Identifier": "",
+        "Record Number": "0010",
+        "Record Type Identifier": "CT",
+        "Record Layout Qualifier": "CTL"
+    },
+    "0020": {
+        "TP Translator Code": "GS02",
+        "Header Identifier (Location Identifier)": "BEG03",
+        "Detail Line Identifier": "",
+        "Sub-Detail Line Identifier": "",
+        "Record Number": "0020",
+        "Record Type Identifier": "TH",
+        "Record Layout Qualifier": "HDR"
+    },
+    "1000": {
+        "TP Translator Code": "GS02",
+        "Header Identifier (Location Identifier)": "BEG03",
+        "Detail Line Identifier": "",
+        "Sub-Detail Line Identifier": "",
+        "Record Number": "1000",
+        "Record Type Identifier": "HD",
+        "Record Layout Qualifier": "HDR"
+    },
+    "1060": {
+        "TP Translator Code": "GS02",
+        "Header Identifier (Location Identifier)": "BEG03",
+        "Detail Line Identifier": "",
+        "Sub-Detail Line Identifier": "",
+        "Record Number": "1060",
+        "Record Type Identifier": "AD",
+        "Record Layout Qualifier": "ADDR"
+    },
+    "1070": {
+        "TP Translator Code": "GS02",
+        "Header Identifier (Location Identifier)": "BEG03",
+        "Detail Line Identifier": "",
+        "Sub-Detail Line Identifier": "",
+        "Record Number": "1070",
+        "Record Type Identifier": "AD",
+        "Record Layout Qualifier": "ADDR2"
+    },
+    "1100": {
+        "TP Translator Code": "GS02",
+        "Header Identifier (Location Identifier)": "BEG03",
+        "Detail Line Identifier": "",
+        "Sub-Detail Line Identifier": "",
+        "Record Number": "1100",
+        "Record Type Identifier": "DT",
+        "Record Layout Qualifier": "LINE"
+    },
+    "1110": {
+        "TP Translator Code": "GS02",
+        "Header Identifier (Location Identifier)": "BEG03",
+        "Detail Line Identifier": "",
+        "Sub-Detail Line Identifier": "",
+        "Record Number": "1110",
+        "Record Type Identifier": "DT",
+        "Record Layout Qualifier": "REF"
+    },
+    "1200": {
+        "TP Translator Code": "GS02",
+        "Header Identifier (Location Identifier)": "BEG03",
+        "Detail Line Identifier": "",
+        "Sub-Detail Line Identifier": "",
+        "Record Number": "1200",
+        "Record Type Identifier": "SD",
+        "Record Layout Qualifier": "SCH"
+    },
+    "1210": {
+        "TP Translator Code": "GS02",
+        "Header Identifier (Location Identifier)": "BEG03",
+        "Detail Line Identifier": "",
+        "Sub-Detail Line Identifier": "",
+        "Record Number": "1210",
+        "Record Type Identifier": "SD",
+        "Record Layout Qualifier": "QTY"
+    },
+    "1400": {
+        "TP Translator Code": "GS02",
+        "Header Identifier (Location Identifier)": "BEG03",
+        "Detail Line Identifier": "",
+        "Sub-Detail Line Identifier": "",
+        "Record Number": "1400",
+        "Record Type Identifier": "SM",
+        "Record Layout Qualifier": "SUM"
+    }
+}

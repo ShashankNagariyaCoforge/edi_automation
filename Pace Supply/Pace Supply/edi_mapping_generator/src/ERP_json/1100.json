@@ -1,0 +1,220 @@
+{
+  "record_number": "1100",
+  "record_purpose": "Purchase order line item details including quantity, price, and item identification",
+  "record_classification": {
+    "record_type_identifier": {
+      "value": "NT",
+      "source": "oracle_standard",
+      "description": "Identifies this record as a detail (line item) record"
+    },
+    "record_layout_qualifier": {
+      "value": "SHP",
+      "source": "oracle_standard",
+      "description": "Specifies line-item level layout"
+    }
+  },
+  "fields": {
+    "Line_Item_Number": {
+      "description": "Sequential number identifying the line item within the purchase order",
+      "semantic_role": "line_sequence",
+      "value_source": "x12",
+      "x12_mapping": {
+        "segment": "PO1",
+        "element": "01",
+        "name": "Assigned Identification"
+      },
+      "value_type": "inferred",
+      "fixed_value": null
+    },
+    "Ordered_Quantity": {
+      "description": "Quantity of the item being ordered",
+      "semantic_role": "order_quantity",
+      "value_source": "x12",
+      "x12_mapping": {
+        "segment": "PO1",
+        "element": "02",
+        "name": "Quantity Ordered"
+      },
+      "value_type": "inferred",
+      "fixed_value": null
+    },
+    "Unit_of_Measure": {
+      "description": "Unit of measure for the ordered quantity",
+      "semantic_role": "unit_of_measure",
+      "value_source": "x12",
+      "x12_mapping": {
+        "segment": "PO1",
+        "element": "03",
+        "name": "Unit or Basis for Measurement Code"
+      },
+      "value_type": "inferred",
+      "fixed_value": null
+    },
+    "Unit_Price": {
+      "description": "Price per unit of the item",
+      "semantic_role": "unit_price",
+      "value_source": "x12",
+      "x12_mapping": {
+        "segment": "PO1",
+        "element": "04",
+        "name": "Unit Price"
+      },
+      "value_type": "inferred",
+      "fixed_value": null
+    },
+    "Price_Basis": {
+      "description": "Indicates how the unit price is calculated (e.g., per unit, per case)",
+      "semantic_role": "price_basis",
+      "value_source": "x12",
+      "x12_mapping": {
+        "segment": "PO1",
+        "element": "05",
+        "name": "Basis of Unit Price Code"
+      },
+      "value_type": "inferred",
+      "fixed_value": null,
+      "notes": "Optional; often omitted if price is per single unit"
+    },
+    "Item_Identifier_Qualifier_1": {
+      "description": "Qualifier identifying the type of item identifier",
+      "semantic_role": "item_identifier_qualifier",
+      "value_source": "x12",
+      "x12_mapping": {
+        "segment": "PO1",
+        "element": "06",
+        "name": "Product/Service ID Qualifier"
+      },
+      "value_type": "inferred",
+      "fixed_value": null,
+      "examples": [
+        "BP (Buyer Part Number)",
+        "VP (Vendor Part Number)",
+        "UP (UPC)"
+      ]
+    },
+    "Item_Identifier_1": {
+      "description": "Item identifier corresponding to the qualifier",
+      "semantic_role": "item_identifier",
+      "value_source": "x12",
+      "x12_mapping": {
+        "segment": "PO1",
+        "element": "07",
+        "name": "Product/Service ID"
+      },
+      "value_type": "inferred",
+      "fixed_value": null
+    },
+    "Item_Identifier_Qualifier_2": {
+      "description": "Second qualifier identifying an alternate item identifier",
+      "semantic_role": "item_identifier_qualifier",
+      "value_source": "x12",
+      "x12_mapping": {
+        "segment": "PO1",
+        "element": "08",
+        "name": "Product/Service ID Qualifier"
+      },
+      "value_type": "inferred",
+      "fixed_value": null,
+      "notes": "Optional; used when multiple identifiers are provided"
+    },
+    "Item_Identifier_2": {
+      "description": "Alternate item identifier corresponding to the second qualifier",
+      "semantic_role": "item_identifier",
+      "value_source": "x12",
+      "x12_mapping": {
+        "segment": "PO1",
+        "element": "09",
+        "name": "Product/Service ID"
+      },
+      "value_type": "inferred",
+      "fixed_value": null
+    },
+    "Item_Description": {
+      "description": "Free-form description of the item",
+      "semantic_role": "item_description",
+      "value_source": "x12",
+      "x12_mapping": {
+        "segment": "PID",
+        "element": "05",
+        "name": "Description"
+      },
+      "value_type": "inferred",
+      "fixed_value": null,
+      "notes": "Often repeated across multiple PID segments"
+    },
+    "Item_Classification_Code": {
+      "description": "Code classifying the item (e.g., UNSPSC, commodity code)",
+      "semantic_role": "item_classification",
+      "value_source": "x12",
+      "x12_mapping": {
+        "segment": "PO1",
+        "element": "06/08",
+        "name": "Product/Service ID Qualifier (classification-based)"
+      },
+      "value_type": "inferred",
+      "fixed_value": null,
+      "notes": "Depends on qualifier used (e.g., 'UN' for UNSPSC)"
+    },
+    "TP_Item_Code": {
+      "description": "ERP-specific item code resolved from EDI identifiers",
+      "semantic_role": "item_resolution",
+      "value_source": "erp_lookup",
+      "x12_mapping": {
+        "lookup_keys": [
+          "PO1_06",
+          "PO1_07",
+          "PO1_08",
+          "PO1_09"
+        ]
+      },
+      "value_type": "lookup",
+      "fixed_value": null,
+      "notes": "Maps buyer/vendor item numbers to ERP item master"
+    },
+    "Line_Amount": {
+      "description": "Total monetary amount for the line item",
+      "semantic_role": "line_amount",
+      "value_source": "derived",
+      "x12_mapping": null,
+      "value_type": "derived",
+      "fixed_value": null,
+      "notes": "Typically derived as Quantity × Unit Price"
+    },
+    "Document_Standard": {
+      "description": "EDI standard governing this record",
+      "semantic_role": "edi_standard",
+      "value_source": "constant",
+      "x12_mapping": null,
+      "value_type": "constant",
+      "fixed_value": "X12"
+    },
+    "Org_ID": {
+      "description": "ERP operating unit or organization context",
+      "semantic_role": "erp_context",
+      "value_source": "erp_context",
+      "x12_mapping": null,
+      "value_type": "contextual"
+    },
+    "CONTROL1": {
+      "description": "Reserved line control field for ERP or customer use",
+      "semantic_role": "reserved_control",
+      "value_source": "vendor_specific",
+      "x12_mapping": null,
+      "value_type": "optional"
+    },
+    "CONTROL2": {
+      "description": "Reserved line control field for ERP or customer use",
+      "semantic_role": "reserved_control",
+      "value_source": "vendor_specific",
+      "x12_mapping": null,
+      "value_type": "optional"
+    },
+    "CONTROL3": {
+      "description": "Reserved line control field for ERP or customer use",
+      "semantic_role": "reserved_control",
+      "value_source": "vendor_specific",
+      "x12_mapping": null,
+      "value_type": "optional"
+    }
+  }
+}

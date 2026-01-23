@@ -1,0 +1,30 @@
+# Configuration for EDI Mapping Generator
+
+# LLM Configuration (Company Portal)
+# Your company's LLM API base URL
+llm_base_url: "https://quasarmarket.coforge.com/qag/llmrouter-api/v2"
+
+# Model name provided by your company
+llm_model: "Claude-Sonnet-4"
+
+# API Key from your company's portal
+llm_api_key: "698302ea-5b8d-41e3-bf24-0593147cd515"
+
+# Authentication type: "bearer" (default), "x-api-key", "basic", or "custom"
+# - bearer: Uses "Authorization: Bearer <key>" header
+# - x-api-key: Uses "x-api-key: <key>" header
+# - basic: Uses "Authorization: Basic <key>" header
+# - custom: Uses the header name specified in auth_header_name
+auth_type: "x-api-key"
+
+# Custom auth header name (only used when auth_type is "custom")
+# auth_header_name: "X-Custom-Auth"
+
+# Maximum parallel threads for processing records
+max_threads: 5
+
+# Request timeout in seconds
+timeout: 120
+
+# Retry attempts for failed API calls
+max_retries: 3

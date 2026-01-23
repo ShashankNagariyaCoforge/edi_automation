@@ -1,0 +1,399 @@
+{
+    "record_number": "1000",
+    "record_purpose": "Purchase Order header information at the transaction level",
+    "record_classification": {
+        "record_type_identifier": {
+            "value": "PO",
+            "source": "oracle_standard",
+            "description": "Identifies this record as a transaction header"
+        },
+        "record_layout_qualifier": {
+            "value": "PO1",
+            "source": "oracle_standard",
+            "description": "Specifies header-level layout for purchase order data"
+        }
+    },
+    "fields": {
+        "Purchase_Order_Number": {
+            "description": "Unique identifier for the purchase order",
+            "semantic_role": "business_document_reference",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "BEG",
+                "element": "03",
+                "name": "Purchase Order Number"
+            },
+            "value_type": "inferred",
+            "fixed_value": null
+        },
+        "Purchase_Order_Date": {
+            "description": "Date the purchase order was created",
+            "semantic_role": "transaction_date",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "BEG",
+                "element": "05",
+                "name": "Purchase Order Date"
+            },
+            "value_type": "inferred",
+            "fixed_value": null
+        },
+        "Purchase_Order_Type_Code": {
+            "description": "Indicates the type of purchase order (e.g., New Order, Blanket, Release)",
+            "semantic_role": "transaction_classification",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "BEG",
+                "element": "02",
+                "name": "Purchase Order Type Code"
+            },
+            "value_type": "inferred",
+            "fixed_value": null
+        },
+        "Transaction_Purpose_Code": {
+            "description": "Specifies whether the purchase order is original, change, or cancellation",
+            "semantic_role": "transaction_intent",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "BEG",
+                "element": "01",
+                "name": "Transaction Set Purpose Code"
+            },
+            "value_type": "inferred",
+            "fixed_value": null
+        },
+        "Release_Number": {
+            "description": "Release number associated with a blanket or contract purchase order",
+            "semantic_role": "release_management",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "REF",
+                "qualifier": "RE",
+                "name": "Release Number"
+            },
+            "value_type": "inferred",
+            "fixed_value": null,
+            "notes": "Present only for blanket or contract POs"
+        },
+        "Contract_Number": {
+            "description": "Contract number governing the purchase order",
+            "semantic_role": "contract_reference",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "REF",
+                "qualifier": "CT",
+                "name": "Contract Number"
+            },
+            "value_type": "inferred",
+            "fixed_value": null
+        },
+        "Currency_Code": {
+            "description": "Currency used for pricing on the purchase order",
+            "semantic_role": "financial_context",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "CUR",
+                "element": "02",
+                "name": "Currency Code"
+            },
+            "value_type": "inferred",
+            "fixed_value": null,
+            "notes": "If CUR segment is absent, ERP default currency may be applied"
+        },
+        "Requested_Delivery_Date": {
+            "description": "Requested delivery date for the purchase order",
+            "semantic_role": "schedule_requirement",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "DTM",
+                "qualifier": "002",
+                "name": "Delivery Requested Date"
+            },
+            "value_type": "inferred",
+            "fixed_value": null
+        },
+        "Ship_Not_Before_Date": {
+            "description": "Date before which shipment should not occur",
+            "semantic_role": "shipping_constraint",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "DTM",
+                "qualifier": "037",
+                "name": "Ship Not Before Date"
+            },
+            "value_type": "inferred",
+            "fixed_value": null
+        },
+        "Ship_Not_After_Date": {
+            "description": "Date after which shipment should not occur",
+            "semantic_role": "shipping_constraint",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "DTM",
+                "qualifier": "038",
+                "name": "Ship Not After Date"
+            },
+            "value_type": "inferred",
+            "fixed_value": null
+        },
+        "Payment_Terms_Code": {
+            "description": "Payment terms applicable to the purchase order",
+            "semantic_role": "payment_terms",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "ITD",
+                "element": "01",
+                "name": "Terms Type Code"
+            },
+            "value_type": "inferred",
+            "fixed_value": null
+        },
+        "Buyer_Reference": {
+            "description": "Identifier for the buyer responsible for the purchase order",
+            "semantic_role": "buyer_identification",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "PER",
+                "qualifier": "BD",
+                "name": "Buyer Name or Identifier"
+            },
+            "value_type": "inferred",
+            "fixed_value": null
+        },
+        "FOB_Terms": {
+            "description": "Freight on Board terms defining delivery responsibility",
+            "semantic_role": "freight_terms",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "FOB",
+                "element": "01",
+                "name": "Shipment Method of Payment"
+            },
+            "value_type": "inferred",
+            "fixed_value": null
+        },
+        "Document_Standard": {
+            "description": "EDI standard used for the transaction",
+            "semantic_role": "edi_standard",
+            "value_source": "constant",
+            "x12_mapping": null,
+            "value_type": "constant",
+            "fixed_value": "X12"
+        },
+        "Org_ID": {
+            "description": "ERP operating unit or organization identifier",
+            "semantic_role": "erp_context",
+            "value_source": "erp_context",
+            "x12_mapping": null,
+            "value_type": "contextual"
+        },
+        "CONTROL1": {
+            "description": "Reserved control field for customer or ERP use",
+            "semantic_role": "reserved_control",
+            "value_source": "vendor_specific",
+            "x12_mapping": null,
+            "value_type": "optional"
+        },
+        "CONTROL2": {
+            "description": "Reserved control field for customer or ERP use",
+            "semantic_role": "reserved_control",
+            "value_source": "vendor_specific",
+            "x12_mapping": null,
+            "value_type": "optional"
+        },
+        "CONTROL3": {
+            "description": "Reserved control field for customer or ERP use",
+            "semantic_role": "reserved_control",
+            "value_source": "vendor_specific",
+            "x12_mapping": null,
+            "value_type": "optional"
+        },
+        "TP_Translator_Code": {
+            "description": "Trading partner identifier as recognized by the EDI translator",
+            "semantic_role": "trading_partner_identification",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "GS",
+                "element": "02",
+                "name": "Application Sender's Code"
+            },
+            "value_type": "inferred",
+            "fixed_value": null,
+            "notes": "Commonly used by EDI translators such as Sterling, Gentran, Seeburger"
+        },
+        "Header_Identifier_Location_Identifier": {
+            "description": "Primary business document identifier",
+            "semantic_role": "business_document_reference",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "BEG",
+                "element": "03",
+                "name": "Purchase Order Number"
+            },
+            "value_type": "inferred",
+            "fixed_value": null
+        },
+        "Detail_Line_Identifier": {
+            "description": "Indicates the start of detail (line item) data",
+            "semantic_role": "detail_loop_marker",
+            "value_source": "oracle_standard",
+            "x12_mapping": {
+                "segment": "PO1",
+                "note": "Used as logical line delimiter, not stored explicitly in X12"
+            },
+            "value_type": "constant",
+            "fixed_value": ""
+        },
+        "Sub_Detail_Line_Identifier": {
+            "description": "Indicates the start of sub-detail data under a line item",
+            "semantic_role": "sub_detail_loop_marker",
+            "value_source": "oracle_standard",
+            "x12_mapping": {
+                "segment": "PID / SCH",
+                "note": "Optional depending on transaction structure"
+            },
+            "value_type": "constant",
+            "fixed_value": ""
+        },
+        "Record_Number": {
+            "description": "Flat file record identifier",
+            "semantic_role": "record_identity",
+            "value_source": "fixed_by_layout",
+            "value_type": "constant",
+            "fixed_value": "0010"
+        },
+        "Record_Type_Identifier": {
+            "description": "Classifies the record category",
+            "semantic_role": "record_classification",
+            "value_source": "oracle_standard",
+            "value_type": "constant",
+            "fixed_value": "CT"
+        },
+        "Record_Layout_Qualifier": {
+            "description": "Specifies the layout variant of the control record",
+            "semantic_role": "record_layout_definition",
+            "value_source": "oracle_standard",
+            "value_type": "constant",
+            "fixed_value": "CTL"
+        },
+        "Transaction_Method": {
+            "description": "Indicates the transaction communication or processing method",
+            "semantic_role": "processing_control",
+            "value_source": "erp_configuration",
+            "x12_mapping": null,
+            "value_type": "configured",
+            "fixed_value": null,
+            "notes": "ERP-specific; not derived from X12"
+        },
+        "Test_Indicator": {
+            "description": "Indicates whether the transmission is test or production",
+            "semantic_role": "environment_control",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "ISA",
+                "element": "15",
+                "name": "Usage Indicator"
+            },
+            "value_type": "inferred",
+            "fixed_value": null
+        },
+        "Document_ID": {
+            "description": "Transaction set identifier",
+            "semantic_role": "transaction_identity",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "ST",
+                "element": "01",
+                "name": "Transaction Set Identifier Code"
+            },
+            "value_type": "inferred",
+            "fixed_value": "850",
+            "notes": "For Purchase Order transactions"
+        },
+        "Document_Type": {
+            "description": "High-level business document classification",
+            "semantic_role": "document_classification",
+            "value_source": "oracle_constant",
+            "x12_mapping": {
+                "segment": "ST",
+                "element": "01"
+            },
+            "value_type": "constant",
+            "fixed_value": "850"
+        },
+        "Document_Purpose_Code": {
+            "description": "Indicates the business purpose of the transaction",
+            "semantic_role": "transaction_intent",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "BEG",
+                "element": "01",
+                "name": "Transaction Set Purpose Code"
+            },
+            "value_type": "inferred",
+            "fixed_value": null
+        },
+        "Document_Code": {
+            "description": "ERP-internal document code",
+            "semantic_role": "erp_document_mapping",
+            "value_source": "erp_constant",
+            "x12_mapping": {
+                "segment": "ST",
+                "element": "01"
+            },
+            "value_type": "constant",
+            "fixed_value": "850"
+        },
+        "TP_Location_Code": {
+            "description": "ERP-specific trading partner location identifier",
+            "semantic_role": "trading_partner_resolution",
+            "value_source": "erp_lookup",
+            "x12_mapping": {
+                "lookup_keys": [
+                    "ISA06",
+                    "ISA08",
+                    "GS02",
+                    "GS03"
+                ]
+            },
+            "value_type": "lookup",
+            "fixed_value": null,
+            "notes": "Resolved via trading partner master data"
+        },
+        "TP_Description": {
+            "description": "Human-readable trading partner description",
+            "semantic_role": "trading_partner_metadata",
+            "value_source": "erp_metadata",
+            "x12_mapping": null,
+            "value_type": "metadata"
+        },
+        "TP_Reference_Ext1": {
+            "description": "Trading partner extension field 1",
+            "semantic_role": "vendor_extension",
+            "value_source": "vendor_specific",
+            "x12_mapping": null,
+            "value_type": "optional"
+        },
+        "TP_Reference_Ext2": {
+            "description": "Trading partner extension field 2",
+            "semantic_role": "vendor_extension",
+            "value_source": "vendor_specific",
+            "x12_mapping": null,
+            "value_type": "optional"
+        },
+        "Transaction_Date": {
+            "description": "Timestamp when the outbound EDI file is generated",
+            "semantic_role": "audit_timestamp",
+            "value_source": "system_generated",
+            "x12_mapping": null,
+            "value_type": "system_generated"
+        },
+        "Transaction_Run_ID": {
+            "description": "Unique identifier for the EDI generation run",
+            "semantic_role": "batch_control",
+            "value_source": "system_generated",
+            "x12_mapping": null,
+            "value_type": "system_generated"
+        }
+    }
+}

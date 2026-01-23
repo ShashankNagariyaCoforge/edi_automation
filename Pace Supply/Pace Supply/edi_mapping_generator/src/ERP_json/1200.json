@@ -1,0 +1,153 @@
+{
+    "record_number": "1200",
+    "record_purpose": "Scheduling and delivery timing details for a specific line item",
+    "record_classification": {
+        "record_type_identifier": {
+            "value": "A1",
+            "source": "oracle_standard",
+            "description": "Identifies this record as a sub-detail (schedule) record"
+        },
+        "record_layout_qualifier": {
+            "value": "PO1",
+            "source": "oracle_standard",
+            "description": "Specifies schedule-level layout"
+        }
+    },
+    "fields": {
+        "Schedule_Quantity": {
+            "description": "Quantity scheduled for delivery on a specific date",
+            "semantic_role": "schedule_quantity",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "SCH",
+                "element": "01",
+                "name": "Quantity"
+            },
+            "value_type": "inferred",
+            "fixed_value": null
+        },
+        "Schedule_Quantity_Qualifier": {
+            "description": "Qualifier defining the meaning of the scheduled quantity",
+            "semantic_role": "schedule_quantity_type",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "SCH",
+                "element": "02",
+                "name": "Quantity Qualifier"
+            },
+            "value_type": "inferred",
+            "fixed_value": null,
+            "notes": "Common values include '01' (Delivery Quantity)"
+        },
+        "Unit_of_Measure": {
+            "description": "Unit of measure for the scheduled quantity",
+            "semantic_role": "unit_of_measure",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "SCH",
+                "element": "03",
+                "name": "Unit or Basis for Measurement Code"
+            },
+            "value_type": "inferred",
+            "fixed_value": null
+        },
+        "Schedule_Date": {
+            "description": "Date on which the scheduled quantity is expected",
+            "semantic_role": "schedule_date",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "SCH",
+                "element": "06",
+                "name": "Date"
+            },
+            "value_type": "inferred",
+            "fixed_value": null
+        },
+        "Schedule_Date_Qualifier": {
+            "description": "Qualifier defining the meaning of the schedule date",
+            "semantic_role": "schedule_date_type",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "SCH",
+                "element": "05",
+                "name": "Date/Time Qualifier"
+            },
+            "value_type": "inferred",
+            "fixed_value": null,
+            "notes": "Common values include '002' (Delivery Requested)"
+        },
+        "TP_Schedule_Code": {
+            "description": "ERP-specific schedule identifier resolved from schedule data",
+            "semantic_role": "schedule_resolution",
+            "value_source": "erp_lookup",
+            "x12_mapping": {
+                "lookup_keys": [
+                    "SCH_01",
+                    "SCH_06",
+                    "PO1_01"
+                ]
+            },
+            "value_type": "lookup",
+            "fixed_value": null,
+            "notes": "Used to map schedule lines to ERP delivery schedules"
+        },
+        "Schedule_Reference_ID": {
+            "description": "Reference identifier for the schedule",
+            "semantic_role": "schedule_reference",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "REF",
+                "qualifier": "SC",
+                "name": "Schedule Identification"
+            },
+            "value_type": "inferred",
+            "fixed_value": null,
+            "notes": "Optional; present only if REF segment is sent"
+        },
+        "Schedule_Status_Code": {
+            "description": "Indicates status of the scheduled delivery",
+            "semantic_role": "schedule_status",
+            "value_source": "derived",
+            "x12_mapping": null,
+            "value_type": "derived",
+            "fixed_value": null,
+            "notes": "Derived by ERP based on business rules"
+        },
+        "Document_Standard": {
+            "description": "EDI standard governing this record",
+            "semantic_role": "edi_standard",
+            "value_source": "constant",
+            "x12_mapping": null,
+            "value_type": "constant",
+            "fixed_value": "X12"
+        },
+        "Org_ID": {
+            "description": "ERP operating unit or organization context",
+            "semantic_role": "erp_context",
+            "value_source": "erp_context",
+            "x12_mapping": null,
+            "value_type": "contextual"
+        },
+        "CONTROL1": {
+            "description": "Reserved schedule control field for ERP or customer use",
+            "semantic_role": "reserved_control",
+            "value_source": "vendor_specific",
+            "x12_mapping": null,
+            "value_type": "optional"
+        },
+        "CONTROL2": {
+            "description": "Reserved schedule control field for ERP or customer use",
+            "semantic_role": "reserved_control",
+            "value_source": "vendor_specific",
+            "x12_mapping": null,
+            "value_type": "optional"
+        },
+        "CONTROL3": {
+            "description": "Reserved schedule control field for ERP or customer use",
+            "semantic_role": "reserved_control",
+            "value_source": "vendor_specific",
+            "x12_mapping": null,
+            "value_type": "optional"
+        }
+    }
+}
