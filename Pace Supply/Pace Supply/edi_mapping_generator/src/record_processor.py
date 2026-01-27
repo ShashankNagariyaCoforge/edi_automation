@@ -64,32 +64,11 @@ class RecordProcessor:
             return {}
 
     def _build_phase3_prompt(self, record_num: str, field_names: List[str], record_def: Dict[str, Any]) -> str:
-        """Construct the strict prompt for Phase 3."""
+        """Construct the prompt for Phase 3 including full JSON definition for semantic matching."""
         
-        # Prepare Field Definitions (Meaning) from Canonical JSON as Q&A
-        field_context = []
-        for fname in field_names:
-            # Try to find definition
-            fdef = record_def.get("fields", {}).get(fname)
-            if not fdef:
-                # cleanup name using normalization
-                norm_name = self._normalize_field_name(fname)
-                fdef = record_def.get("fields", {}).get(norm_name)
-            
-            if fdef:
-                # Format as Q&A
-                qa_block = [
-                    f"Field: {fname}",
-                    f"1. What is this field? {fdef.get('description', 'Unknown')}",
-                    f"2. Why does it exist? {fdef.get('semantic_role', 'Unknown')}",
-                    f"3. Where does it come from? {fdef.get('value_source', 'Unknown')}",
-                    f"4. Can X12 provide it? {json.dumps(fdef.get('x12_mapping')) if fdef.get('x12_mapping') else 'No'}",
-                    f"5. Should I infer or fix it? {fdef.get('value_type', 'Unknown')}",
-                    f"6. Is the value fixed? {fdef.get('fixed_value') if fdef.get('fixed_value') is not None else 'No'}"
-                ]
-                field_context.append("\n".join(qa_block))
-            else:
-                field_context.append(f"Field: {fname}\n(No Knowledge Base definition found)")
+        # Prepare Knowledge Base (JSON)
+        # We dump the entire JSON content so the LLM can see all keys and structure
+        knowledge_base_str = json.dumps(record_def, indent=2)
 
         # Prepare Constraints (PDF) - Filtered
         filtered_constraints = self._filter_constraints_for_record(record_def)
@@ -103,17 +82,23 @@ class RecordProcessor:
         prompt_parts = [
             "You are an expert EDI Integration Architect.",
             "We are working on an automation to prepare an X12_to_Oracle mapping file.",
-            "Currently, this is done manually whenever a new vendor is onboarded.",
-            "This mapping file explains where to pull data from the EDI X12 file so downstream systems can ingest it.",
             "Your task is to prepare this mapping for a specific Record Group.",
             "",
             f"### CONTEXT: Record {record_num}",
-            "We have fetched the relevant field definitions from our internal Knowledge Base (JSON).",
+            f"Target Fields to Map: {json.dumps(field_names)}",
             "",
-            "### STEP 1: UNDERSTAND THE FIELDS (Q&A From Knowledge Base)",
-            "\n\n".join(field_context),
+            "### STEP 1: CONSULT KNOWLEDGE BASE (Source of Truth)",
+            "The following JSON defines the available fields and their rules.",
+            "CRITICAL: The 'Target Fields' above might use slightly different naming or casing than the keys in this JSON.",
+            "You must SEARCH this JSON for the matching definition. Keys might be nested.",
+            "- If a field matches 'record_number', use the root 'record_number' or related constant.",
+            "- If a field matches a key inside 'record_classification', use that.",
+            "- Use 'semantic similarity' to resolve Excel field names to JSON keys.",
             "",
-            "### STEP 2: CONSULT EXTRA RULES (From PDF/RAG)",
+            "#### KNOWLEDGE BASE JSON:",
+            knowledge_base_str,
+            "",
+            "### STEP 2: CONSULT EXTRA RULES (From PDF)",
             "These are specific validation rules extracted from the Vendor Specification.",
             constraints_str,
             "",
@@ -122,8 +107,8 @@ class RecordProcessor:
             sample_str,
             "",
             "### STEP 4: GENERATE OUTPUT",
-            "Based on the above, generate the mapping JSON for the requested fields.",
-            "Return a JSON object where keys are the specific Field Names.",
+            "Based on the above, generate the mapping JSON for the requested Target Fields.",
+            "Return a JSON object where keys are the specific Field Names from the 'Target Fields' list.",
             'Values must be an object with keys: "B", "C", "J".',
             "",
             "## COLUMN DEFINITIONS (CRITICAL)",
@@ -140,12 +125,14 @@ class RecordProcessor:
             "",
             "**Column J (LOGIC)**: Explain your reasoning briefly.",
             "  - Example: 'Mapped from BEG03 per Knowledge Base' or 'Fixed value per oracle_standard'",
+            "  - If you found the field in the JSON but it has a fixed value, state that.",
             "",
             "## DECISION RULES",
-            "1. Check 'Where does it come from?' (value_source) and 'Can X12 provide it?' (x12_mapping)",
-            "2. If value_source is 'x12' and x12_mapping exists → B = segment+element (e.g., 'BEG03'), C = empty",
-            "3. If value_source is 'constant', 'fixed_by_layout', 'oracle_standard' → B = empty, C = fixed_value",
-            "4. If neither applies → B = empty, C = empty, J = 'Cannot determine mapping'",
+            "1. Search the Knowledge Base for the field definition (handle casing/spacing differences).",
+            "2. If found, check 'value_source' and 'x12_mapping'.",
+            "3. If value_source is 'x12' and x12_mapping exists → B = segment+element, C = empty",
+            "4. If value_source is 'constant', 'fixed_by_layout' → B = empty, C = fixed_value",
+            "5. If NOT found in Knowledge Base after searching → B = empty, C = empty, J = 'Cannot determine mapping - not in KB'",
             "",
             "## JSON SCHEMA",
             "{",

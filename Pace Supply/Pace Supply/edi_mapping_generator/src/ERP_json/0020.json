@@ -62,6 +62,34 @@
             "value_type": "inferred",
             "fixed_value": null
         },
+        "Header_Identifier_Location_Identifier": {
+            "description": "Primary business document identifier",
+            "semantic_role": "business_document_reference",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "ISA",
+                "element": "13",
+                "name": "Interchange Control Number"
+            },
+            "value_type": "inferred",
+            "fixed_value": null
+        },
+        "Detail_Line_Identifier": {
+            "description": "Indicates the start of detail (line item) data",
+            "semantic_role": "detail_loop_marker",
+            "value_source": "constant",
+            "x12_mapping": null,
+            "value_type": "constant",
+            "fixed_value": ""
+        },
+        "Sub_Detail_Line_Identifier": {
+            "description": "Indicates the start of sub-detail data under a line item",
+            "semantic_role": "sub_detail_loop_marker",
+            "value_source": "constant",
+            "x12_mapping": null,
+            "value_type": "constant",
+            "fixed_value": ""
+        },
         "Receiver_ID": {
             "description": "EDI receiver identifier",
             "semantic_role": "edi_receiver_identity",
@@ -166,6 +194,41 @@
         "CONTROL3": {
             "description": "Reserved control field for customer or ERP use",
             "semantic_role": "reserved_control",
+            "value_source": "vendor_specific",
+            "x12_mapping": null,
+            "value_type": "optional"
+        },
+        "TP_CONTEXT": {
+            "description": "Trading Partner context or organization identifier",
+            "semantic_role": "erp_context",
+            "value_source": "erp_context",
+            "x12_mapping": null,
+            "value_type": "contextual"
+        },
+        "TP_ATTRIBUTE_1": {
+            "description": "Reserved attribute 1",
+            "semantic_role": "reserved_attribute",
+            "value_source": "vendor_specific",
+            "x12_mapping": null,
+            "value_type": "optional"
+        },
+        "TP_ATTRIBUTE_2": {
+            "description": "Reserved attribute 2",
+            "semantic_role": "reserved_attribute",
+            "value_source": "vendor_specific",
+            "x12_mapping": null,
+            "value_type": "optional"
+        },
+        "TP_ATTRIBUTE_3": {
+            "description": "Reserved attribute 3",
+            "semantic_role": "reserved_attribute",
+            "value_source": "vendor_specific",
+            "x12_mapping": null,
+            "value_type": "optional"
+        },
+        "TP_ATTRIBUTE_4": {
+            "description": "Reserved attribute 4",
+            "semantic_role": "reserved_attribute",
             "value_source": "vendor_specific",
             "x12_mapping": null,
             "value_type": "optional"
