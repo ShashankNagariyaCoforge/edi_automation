@@ -1,136 +1,174 @@
 {
     "record_number": "1060",
-    "record_purpose": "Identification of parties involved in the purchase order (buyer, seller, ship-to, bill-to, etc.)",
+    "record_name": "Financial and Currency Information",
+    "record_purpose": "Holds transaction-level currency, conversion, and payment context for the purchase order",
     "record_classification": {
         "record_type_identifier": {
             "value": "PY",
             "source": "oracle_standard",
-            "description": "Identifies this record as an address/party record"
+            "description": "Identifies this record as a financial information record"
         },
         "record_layout_qualifier": {
             "value": "CUR",
             "source": "oracle_standard",
-            "description": "Specifies address header layout"
+            "description": "Financial record layout"
         }
     },
     "fields": {
-        "Entity_Identifier_Code": {
-            "description": "Identifies the type of party being referenced",
-            "semantic_role": "party_role",
+        "TP_Translator_Code": {
+            "description": "Trading partner identifier used by the EDI translator",
+            "semantic_role": "trading_partner_identification",
             "value_source": "x12",
             "x12_mapping": {
-                "segment": "N1",
-                "element": "01",
-                "name": "Entity Identifier Code"
-            },
-            "value_type": "inferred",
-            "fixed_value": null,
-            "examples": [
-                "ST (Ship To)",
-                "BT (Bill To)",
-                "SU (Supplier)",
-                "BY (Buying Party)"
-            ]
-        },
-        "Party_Name": {
-            "description": "Name of the identified party",
-            "semantic_role": "party_name",
-            "value_source": "x12",
-            "x12_mapping": {
-                "segment": "N1",
+                "segment": "GS",
                 "element": "02",
-                "name": "Name"
+                "name": "Application Sender's Code"
             },
-            "value_type": "inferred",
-            "fixed_value": null
+            "value_type": "inferred"
         },
-        "Identification_Code_Qualifier": {
-            "description": "Qualifier indicating the type of identification code used",
-            "semantic_role": "party_identifier_qualifier",
+        "Header_Identifier_Location_Identifier": {
+            "description": "Unique identifier of the purchase order header",
+            "semantic_role": "transaction_identity",
             "value_source": "x12",
             "x12_mapping": {
-                "segment": "N1",
+                "segment": "BEG",
                 "element": "03",
-                "name": "Identification Code Qualifier"
+                "name": "Purchase Order Number"
             },
-            "value_type": "inferred",
-            "fixed_value": null,
-            "notes": "Examples include '92' (Assigned by Buyer) or 'ZZ' (Mutually Defined)"
+            "value_type": "inferred"
         },
-        "Identification_Code": {
-            "description": "Code that uniquely identifies the party",
-            "semantic_role": "party_identifier",
-            "value_source": "x12",
-            "x12_mapping": {
-                "segment": "N1",
-                "element": "04",
-                "name": "Identification Code"
-            },
-            "value_type": "inferred",
-            "fixed_value": null
-        },
-        "TP_Location_Code": {
-            "description": "ERP-specific trading partner location identifier resolved from party information",
-            "semantic_role": "trading_partner_resolution",
-            "value_source": "erp_lookup",
-            "x12_mapping": {
-                "lookup_keys": [
-                    "N1_01",
-                    "N1_04",
-                    "ISA06",
-                    "ISA08"
-                ]
-            },
-            "value_type": "lookup",
-            "fixed_value": null,
-            "notes": "Used by ERP to map EDI party to internal location/site"
-        },
-        "Party_Function": {
-            "description": "Functional role of the party in the transaction",
-            "semantic_role": "party_function",
-            "value_source": "derived",
-            "x12_mapping": {
-                "segment": "N1",
-                "element": "01"
-            },
-            "value_type": "derived",
-            "fixed_value": null,
-            "notes": "Often derived directly from Entity Identifier Code"
-        },
-        "Document_Standard": {
-            "description": "EDI standard governing this record",
-            "semantic_role": "edi_standard",
+        "Detail_Line_Identifier": {
+            "description": "Detail line reference identifier",
+            "semantic_role": "detail_reference",
             "value_source": "constant",
-            "x12_mapping": null,
             "value_type": "constant",
-            "fixed_value": "X12"
+            "fixed_value": ""
         },
-        "Org_ID": {
-            "description": "ERP operating unit or organization context",
-            "semantic_role": "erp_context",
-            "value_source": "erp_context",
-            "x12_mapping": null,
-            "value_type": "contextual"
+        "Sub_Detail_Line_Identifier": {
+            "description": "Sub-detail line reference identifier",
+            "semantic_role": "sub_detail_reference",
+            "value_source": "constant",
+            "value_type": "constant",
+            "fixed_value": ""
         },
-        "CONTROL1": {
-            "description": "Reserved party control field for ERP or customer use",
-            "semantic_role": "reserved_control",
+        "Record_Number": {
+            "description": "Oracle record number",
+            "semantic_role": "record_identity",
+            "value_source": "constant",
+            "value_type": "constant",
+            "fixed_value": "1060"
+        },
+        "TRANSACTIONAL_CURR_CODE": {
+            "description": "Currency code in which the transaction is denominated",
+            "semantic_role": "financial_context",
+            "value_source": "x12_or_erp_default",
+            "x12_mapping": {
+                "segment": "CUR",
+                "element": "02",
+                "name": "Currency Code"
+            },
+            "value_type": "inferred_with_fallback",
+            "notes": "If CUR segment is absent, ERP default currency is applied"
+        },
+        "TRANSACTIONAL_CURR_CODE_EXT1": {
+            "description": "Extended transactional currency code",
+            "semantic_role": "vendor_extension",
             "value_source": "vendor_specific",
-            "x12_mapping": null,
             "value_type": "optional"
         },
-        "CONTROL2": {
-            "description": "Reserved party control field for ERP or customer use",
-            "semantic_role": "reserved_control",
+        "CONVERSION_RATE_DATE": {
+            "description": "Date used for currency conversion rate",
+            "semantic_role": "currency_conversion_context",
+            "value_source": "erp_derived",
+            "value_type": "system_generated"
+        },
+        "CONVERSION_RATE": {
+            "description": "Currency conversion rate applied to the transaction",
+            "semantic_role": "currency_conversion_rate",
+            "value_source": "erp_derived",
+            "value_type": "system_generated"
+        },
+        "TRANSACTIONAL_CURR": {
+            "description": "Internal Oracle transactional currency value",
+            "semantic_role": "financial_context",
+            "value_source": "derived",
+            "value_type": "derived",
+            "notes": "Typically same as TRANSACTIONAL_CURR_CODE"
+        },
+        "CONVERSION_TYPE_CODE": {
+            "description": "Type of conversion rate applied",
+            "semantic_role": "currency_conversion_type",
+            "value_source": "erp_configuration",
+            "value_type": "configured",
+            "notes": "Examples: Corporate, Spot"
+        },
+        "CONVERSION_TYPE_CODE_EXT1": {
+            "description": "Extended conversion type code",
+            "semantic_role": "vendor_extension",
             "value_source": "vendor_specific",
-            "x12_mapping": null,
             "value_type": "optional"
         },
-        "CONTROL3": {
-            "description": "Reserved party control field for ERP or customer use",
-            "semantic_role": "reserved_control",
+        "PAYMENT_AMOUNT": {
+            "description": "Total payment amount for the transaction",
+            "semantic_role": "payment_amount",
+            "value_source": "derived",
+            "value_type": "derived",
+            "notes": "Derived by ERP; not transmitted in X12 850"
+        },
+        "PAYMENT_TYPE_CODE": {
+            "description": "Method of payment for the transaction",
+            "semantic_role": "payment_method",
+            "value_source": "erp_configuration",
+            "value_type": "configured",
+            "notes": "Examples: CHECK, CARD, TERMS"
+        },
+        "PAYMENT_TYPE_CODE_EXT1": {
+            "description": "Extended payment type code",
+            "semantic_role": "vendor_extension",
             "value_source": "vendor_specific",
-            "x12_mapping": null,
+            "value_type": "optional"
+        },
+        "CREDIT_CARD_CODE": {
+            "description": "Credit card type code",
+            "semantic_role": "credit_card_metadata",
+            "value_source": "erp_configuration",
+            "value_type": "optional"
+        },
+        "CREDIT_CARD_Code_EXT1": {
+            "description": "Extended credit card code",
+            "semantic_role": "vendor_extension",
+            "value_source": "vendor_specific",
+            "value_type": "optional"
+        },
+        "CREDIT_CARD_NUMBER": {
+            "description": "Credit card number",
+            "semantic_role": "sensitive_payment_data",
+            "value_source": "not_expected",
+            "value_type": "optional",
+            "notes": "Typically not sent in X12 850"
+        },
+        "CREDIT_CARD_EXPIRATION_DATE": {
+            "description": "Credit card expiration date",
+            "semantic_role": "sensitive_payment_data",
+            "value_source": "not_expected",
+            "value_type": "optional"
+        },
+        "CREDIT_CARD_APPROVAL_DATE": {
+            "description": "Credit card approval date",
+            "semantic_role": "payment_authorization",
+            "value_source": "erp_derived",
+            "value_type": "optional"
+        },
+        "CREDIT_CARD_HOLDER_NAME": {
+            "description": "Name of the credit card holder",
+            "semantic_role": "payment_identity",
+            "value_source": "erp_configuration",
+            "value_type": "optional"
+        },
+        "CHECK_NUMBER": {
+            "description": "Check number used for payment",
+            "semantic_role": "payment_reference",
+            "value_source": "erp_derived",
             "value_type": "optional"
         }
     }

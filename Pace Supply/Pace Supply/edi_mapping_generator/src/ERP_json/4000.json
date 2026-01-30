@@ -1,0 +1,256 @@
+{
+    "record_number": "4000",
+    "record_name": "Quantity and Schedule Information",
+    "record_purpose": "Holds quantity, shipment, scheduling, and reference information for a purchase order line",
+    "record_classification": {
+        "record_type_identifier": {
+            "value": "DT",
+            "source": "oracle_standard",
+            "description": "Identifies this record as a date/quantity record"
+        },
+        "record_layout_qualifier": {
+            "value": "QTY",
+            "source": "oracle_standard",
+            "description": "Quantity and schedule layout"
+        }
+    },
+    "fields": {
+        "TP_Translator_Code": {
+            "description": "Trading partner identifier used by the EDI translator",
+            "semantic_role": "trading_partner_identification",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "GS",
+                "element": "02",
+                "name": "Application Sender's Code"
+            },
+            "value_type": "inferred"
+        },
+        "Header_Identifier_Location_Identifier": {
+            "description": "Unique identifier of the purchase order header",
+            "semantic_role": "transaction_identity",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "BEG",
+                "element": "03",
+                "name": "Purchase Order Number"
+            },
+            "value_type": "inferred"
+        },
+        "Detail_Line_Identifier": {
+            "description": "Reference to the purchase order line",
+            "semantic_role": "line_reference",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "PO1",
+                "element": "01",
+                "name": "Assigned Identification"
+            },
+            "value_type": "inferred"
+        },
+        "Sub_Detail_Line_Identifier": {
+            "description": "Sub-line identifier for shipment splits or configurations",
+            "semantic_role": "sub_line_reference",
+            "value_source": "constant",
+            "value_type": "constant",
+            "fixed_value": ""
+        },
+        "Record_Number": {
+            "description": "Oracle record number",
+            "semantic_role": "record_identity",
+            "value_source": "constant",
+            "value_type": "constant",
+            "fixed_value": "4000"
+        },
+        "Ship_Model_Complete_Flag": {
+            "description": "Indicates whether the model must ship complete",
+            "semantic_role": "shipping_constraint",
+            "value_source": "erp_configuration",
+            "value_type": "configured",
+            "examples": [
+                "Y",
+                "N"
+            ]
+        },
+        "AUTHORIZED_TO_SHIP_FLAG": {
+            "description": "Indicates whether the line is authorized to ship",
+            "semantic_role": "shipping_authorization",
+            "value_source": "erp_context",
+            "value_type": "contextual"
+        },
+        "Shipment_Number": {
+            "description": "Oracle shipment number",
+            "semantic_role": "shipment_identifier",
+            "value_source": "erp_derived",
+            "value_type": "derived"
+        },
+        "Customer_Shipment_Number": {
+            "description": "Customer-provided shipment reference",
+            "semantic_role": "customer_shipment_reference",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "REF",
+                "name": "Shipment Reference"
+            },
+            "value_type": "optional"
+        },
+        "Orig_Sys_Shipment_Ref": {
+            "description": "Original system shipment reference",
+            "semantic_role": "source_shipment_reference",
+            "value_source": "x12_or_erp_context",
+            "value_type": "optional"
+        },
+        "Request_Date": {
+            "description": "Date shipment is requested",
+            "semantic_role": "requested_ship_date",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "DTM",
+                "qualifier": "010",
+                "name": "Requested Ship Date"
+            },
+            "value_type": "inferred"
+        },
+        "Schedule_Date": {
+            "description": "Scheduled date for the order line",
+            "semantic_role": "scheduled_date",
+            "value_source": "erp_derived",
+            "value_type": "derived"
+        },
+        "Schedule_Ship_Date": {
+            "description": "Scheduled ship date for the line",
+            "semantic_role": "scheduled_ship_date",
+            "value_source": "x12_or_erp_derived",
+            "x12_mapping": {
+                "segment": "DTM",
+                "qualifier": "067",
+                "name": "Current Schedule Delivery"
+            },
+            "value_type": "derived"
+        },
+        "Promise_Date": {
+            "description": "Promised delivery or ship date",
+            "semantic_role": "promise_date",
+            "value_source": "x12_or_erp_derived",
+            "x12_mapping": {
+                "segment": "DTM",
+                "qualifier": "017",
+                "name": "Estimated Delivery"
+            },
+            "value_type": "derived"
+        },
+        "Ordered_Quantity": {
+            "description": "Ordered quantity for the line",
+            "semantic_role": "ordered_quantity",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "PO1",
+                "element": "02"
+            },
+            "value_type": "inferred"
+        },
+        "Order_Quantity_UOM": {
+            "description": "Unit of measure for the ordered quantity",
+            "semantic_role": "unit_of_measure",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "PO1",
+                "element": "03"
+            },
+            "value_type": "inferred"
+        },
+        "Order_Quantity_UOM_EXT1": {
+            "description": "Extended or alternate unit of measure",
+            "semantic_role": "vendor_extension",
+            "value_source": "vendor_specific",
+            "value_type": "optional"
+        },
+        "Ordered_Quantity2": {
+            "description": "Secondary ordered quantity",
+            "semantic_role": "secondary_quantity",
+            "value_source": "erp_context",
+            "value_type": "optional"
+        },
+        "Ordered_Quantity_UOM2": {
+            "description": "Unit of measure for secondary quantity",
+            "semantic_role": "secondary_unit_of_measure",
+            "value_source": "erp_context",
+            "value_type": "optional"
+        },
+        "Order_Quantity_UOM2_EXT1": {
+            "description": "Extended secondary unit of measure",
+            "semantic_role": "vendor_extension",
+            "value_source": "vendor_specific",
+            "value_type": "optional"
+        },
+        "Shipped_Quantity": {
+            "description": "Quantity shipped",
+            "semantic_role": "shipped_quantity",
+            "value_source": "erp_derived",
+            "value_type": "derived"
+        },
+        "Shipped_Quantity2": {
+            "description": "Secondary shipped quantity",
+            "semantic_role": "secondary_shipped_quantity",
+            "value_source": "erp_derived",
+            "value_type": "optional"
+        },
+        "REFERENCE_HEADER": {
+            "description": "Header-level reference applicable to the shipment or line",
+            "semantic_role": "reference_header",
+            "value_source": "x12_or_erp_context",
+            "value_type": "optional"
+        },
+        "REFERENCE_LINE": {
+            "description": "Line-level reference applicable to the shipment",
+            "semantic_role": "reference_line",
+            "value_source": "x12_or_erp_context",
+            "value_type": "optional"
+        },
+        "Reference_Type": {
+            "description": "Type or qualifier for the reference",
+            "semantic_role": "reference_qualifier",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "REF",
+                "element": "01"
+            },
+            "value_type": "optional"
+        },
+        "Cust_Model_Serial_Number": {
+            "description": "Customer-provided model or serial number",
+            "semantic_role": "customer_serial_reference",
+            "value_source": "x12_or_erp_context",
+            "value_type": "optional"
+        },
+        "SALESREP": {
+            "description": "Sales representative identifier",
+            "semantic_role": "sales_rep_reference",
+            "value_source": "erp_configuration",
+            "value_type": "optional"
+        },
+        "Operation_Code": {
+            "description": "Operation or action code for the line",
+            "semantic_role": "operation_type",
+            "value_source": "erp_context",
+            "value_type": "contextual",
+            "examples": [
+                "INSERT",
+                "UPDATE",
+                "CANCEL"
+            ]
+        },
+        "Operation_Code_ext1": {
+            "description": "Extended operation code",
+            "semantic_role": "vendor_extension",
+            "value_source": "vendor_specific",
+            "value_type": "optional"
+        },
+        "BLANKET_LINE_NUMBER": {
+            "description": "Blanket purchase agreement line reference",
+            "semantic_role": "blanket_line_reference",
+            "value_source": "x12_or_erp_lookup",
+            "value_type": "optional"
+        }
+    }
+}

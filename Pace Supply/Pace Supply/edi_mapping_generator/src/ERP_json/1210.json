@@ -1,17 +1,17 @@
 {
-    "record_number": "1200",
-    "record_name": "PO Header Attributes (1–4)",
-    "record_purpose": "Holds Oracle Purchase Order header descriptive flexfield attributes 1 through 4 for categorization and custom metadata",
+    "record_number": "1210",
+    "record_name": "PO Header Attributes",
+    "record_purpose": "Holds Oracle Purchase Order header descriptive flexfield attributes for categorization and custom metadata",
     "record_classification": {
         "record_type_identifier": {
             "value": "A1",
             "source": "oracle_standard",
-            "description": "Identifies this record as a PO header attribute record"
+            "description": "Identifies this record as a header attribute record"
         },
         "record_layout_qualifier": {
-            "value": "PO1",
+            "value": "SRD",
             "source": "oracle_standard",
-            "description": "Header attribute layout for attributes 1–4"
+            "description": "Header attribute layout"
         }
     },
     "fields": {
@@ -56,35 +56,41 @@
             "semantic_role": "record_identity",
             "value_source": "constant",
             "value_type": "constant",
-            "fixed_value": "1200"
+            "fixed_value": "1210"
         },
         "PO_Header_Category": {
             "description": "Descriptive flexfield category for the PO header",
             "semantic_role": "flexfield_category",
             "value_source": "erp_configuration",
             "value_type": "configured",
-            "notes": "Determines which PO header attributes are enabled and interpreted by Oracle"
+            "notes": "Determines which PO header attributes are enabled in Oracle"
         },
-        "PO_Header_Attribute_1": {
-            "description": "PO header descriptive flexfield attribute 1",
+        "PO_Header_Attribute_5": {
+            "description": "PO header descriptive flexfield attribute 5",
             "semantic_role": "flexfield_attribute",
             "value_source": "erp_context",
             "value_type": "optional"
         },
-        "PO_Header_Attribute_2": {
-            "description": "PO header descriptive flexfield attribute 2",
+        "PO_Header_Attribute_6": {
+            "description": "PO header descriptive flexfield attribute 6",
             "semantic_role": "flexfield_attribute",
             "value_source": "erp_context",
             "value_type": "optional"
         },
-        "PO_Header_Attribute_3": {
-            "description": "PO header descriptive flexfield attribute 3",
+        "PO_Header_Attribute_7": {
+            "description": "PO header descriptive flexfield attribute 7",
             "semantic_role": "flexfield_attribute",
             "value_source": "erp_context",
             "value_type": "optional"
         },
-        "PO_Header_Attribute_4": {
-            "description": "PO header descriptive flexfield attribute 4",
+        "PO_Header_Attribute_8": {
+            "description": "PO header descriptive flexfield attribute 8",
+            "semantic_role": "flexfield_attribute",
+            "value_source": "erp_context",
+            "value_type": "optional"
+        },
+        "PO_Header_Attribute_9": {
+            "description": "PO header descriptive flexfield attribute 9",
             "semantic_role": "flexfield_attribute",
             "value_source": "erp_context",
             "value_type": "optional"

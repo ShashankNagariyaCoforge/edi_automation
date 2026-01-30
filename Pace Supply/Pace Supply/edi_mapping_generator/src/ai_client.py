@@ -7,7 +7,7 @@ import re
 import time
 import httpx
 from typing import Dict, List, Any, Optional
-from .logger import get_logger
+from logger import get_logger
 
 
 class AIClient:

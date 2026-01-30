@@ -3,7 +3,7 @@ PDF text extraction module.
 """
 import fitz  # PyMuPDF
 from pathlib import Path
-from .logger import get_logger
+from logger import get_logger
 
 
 def extract_text_from_pdf(pdf_path: str) -> str:

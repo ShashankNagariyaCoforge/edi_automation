@@ -1,21 +1,22 @@
 {
     "record_number": "0020",
-    "record_purpose": "Trading partner and interchange-level identification",
+    "record_name": "Trading Partner Context",
+    "record_purpose": "Holds trading partner context and custom attributes used by Oracle for routing, processing, or conditional logic",
     "record_classification": {
         "record_type_identifier": {
             "value": "A1",
             "source": "oracle_standard",
-            "description": "Identifies this record as a trading partner header"
+            "description": "Identifies this record as a context record"
         },
         "record_layout_qualifier": {
             "value": "TH1",
             "source": "oracle_standard",
-            "description": "Specifies trading partner header layout"
+            "description": "Trading partner context layout"
         }
     },
     "fields": {
         "TP_Translator_Code": {
-            "description": "Trading partner identifier as recognized by the EDI translator",
+            "description": "Trading partner identifier used by the EDI translator",
             "semantic_role": "trading_partner_identification",
             "value_source": "x12",
             "x12_mapping": {
@@ -23,214 +24,69 @@
                 "element": "02",
                 "name": "Application Sender's Code"
             },
-            "value_type": "inferred",
-            "fixed_value": null,
-            "notes": "Same identifier used by the EDI translation layer"
-        },
-        "TP_Location_Code": {
-            "description": "ERP-specific trading partner location identifier",
-            "semantic_role": "trading_partner_resolution",
-            "value_source": "erp_lookup",
-            "x12_mapping": {
-                "lookup_keys": [
-                    "ISA06",
-                    "ISA08",
-                    "GS02",
-                    "GS03"
-                ]
-            },
-            "value_type": "lookup",
-            "fixed_value": null,
-            "notes": "Resolved using ERP trading partner setup tables"
-        },
-        "TP_Description": {
-            "description": "Human-readable trading partner name or description",
-            "semantic_role": "trading_partner_metadata",
-            "value_source": "erp_metadata",
-            "x12_mapping": null,
-            "value_type": "metadata"
-        },
-        "Sender_ID": {
-            "description": "EDI sender identifier",
-            "semantic_role": "edi_sender_identity",
-            "value_source": "x12",
-            "x12_mapping": {
-                "segment": "ISA",
-                "element": "06",
-                "name": "Interchange Sender ID"
-            },
-            "value_type": "inferred",
-            "fixed_value": null
+            "value_type": "inferred"
         },
         "Header_Identifier_Location_Identifier": {
-            "description": "Primary business document identifier",
-            "semantic_role": "business_document_reference",
+            "description": "Unique identifier of the purchase order header",
+            "semantic_role": "transaction_identity",
             "value_source": "x12",
             "x12_mapping": {
-                "segment": "ISA",
-                "element": "13",
-                "name": "Interchange Control Number"
+                "segment": "BEG",
+                "element": "03",
+                "name": "Purchase Order Number"
             },
-            "value_type": "inferred",
-            "fixed_value": null
+            "value_type": "inferred"
         },
         "Detail_Line_Identifier": {
-            "description": "Indicates the start of detail (line item) data",
-            "semantic_role": "detail_loop_marker",
+            "description": "Detail line reference identifier",
+            "semantic_role": "detail_reference",
             "value_source": "constant",
-            "x12_mapping": null,
             "value_type": "constant",
             "fixed_value": ""
         },
         "Sub_Detail_Line_Identifier": {
-            "description": "Indicates the start of sub-detail data under a line item",
-            "semantic_role": "sub_detail_loop_marker",
+            "description": "Sub-detail line reference identifier",
+            "semantic_role": "sub_detail_reference",
             "value_source": "constant",
-            "x12_mapping": null,
             "value_type": "constant",
             "fixed_value": ""
         },
-        "Receiver_ID": {
-            "description": "EDI receiver identifier",
-            "semantic_role": "edi_receiver_identity",
-            "value_source": "x12",
-            "x12_mapping": {
-                "segment": "ISA",
-                "element": "08",
-                "name": "Interchange Receiver ID"
-            },
-            "value_type": "inferred",
-            "fixed_value": null
-        },
-        "Sender_Application_ID": {
-            "description": "Application-level sender identifier",
-            "semantic_role": "application_identity",
-            "value_source": "x12",
-            "x12_mapping": {
-                "segment": "GS",
-                "element": "02",
-                "name": "Application Sender's Code"
-            },
-            "value_type": "inferred",
-            "fixed_value": null
-        },
-        "Receiver_Application_ID": {
-            "description": "Application-level receiver identifier",
-            "semantic_role": "application_identity",
-            "value_source": "x12",
-            "x12_mapping": {
-                "segment": "GS",
-                "element": "03",
-                "name": "Application Receiver's Code"
-            },
-            "value_type": "inferred",
-            "fixed_value": null
-        },
-        "Interchange_Control_Number": {
-            "description": "Unique identifier for the interchange",
-            "semantic_role": "interchange_control",
-            "value_source": "x12",
-            "x12_mapping": {
-                "segment": "ISA",
-                "element": "13",
-                "name": "Interchange Control Number"
-            },
-            "value_type": "inferred",
-            "fixed_value": null
-        },
-        "Functional_Group_Control_Number": {
-            "description": "Control number for the functional group",
-            "semantic_role": "functional_group_control",
-            "value_source": "x12",
-            "x12_mapping": {
-                "segment": "GS",
-                "element": "06",
-                "name": "Group Control Number"
-            },
-            "value_type": "inferred",
-            "fixed_value": null
-        },
-        "Test_Indicator": {
-            "description": "Indicates whether the interchange is test or production",
-            "semantic_role": "environment_control",
-            "value_source": "x12",
-            "x12_mapping": {
-                "segment": "ISA",
-                "element": "15",
-                "name": "Usage Indicator"
-            },
-            "value_type": "inferred",
-            "fixed_value": null
-        },
-        "Document_Standard": {
-            "description": "EDI standard used for the transaction",
-            "semantic_role": "edi_standard",
+        "Record_Number": {
+            "description": "Oracle record number",
+            "semantic_role": "record_identity",
             "value_source": "constant",
-            "x12_mapping": null,
             "value_type": "constant",
-            "fixed_value": "X12"
-        },
-        "Org_ID": {
-            "description": "ERP operating unit or organization identifier",
-            "semantic_role": "erp_context",
-            "value_source": "erp_context",
-            "x12_mapping": null,
-            "value_type": "contextual"
-        },
-        "CONTROL1": {
-            "description": "Reserved control field for customer or ERP use",
-            "semantic_role": "reserved_control",
-            "value_source": "vendor_specific",
-            "x12_mapping": null,
-            "value_type": "optional"
-        },
-        "CONTROL2": {
-            "description": "Reserved control field for customer or ERP use",
-            "semantic_role": "reserved_control",
-            "value_source": "vendor_specific",
-            "x12_mapping": null,
-            "value_type": "optional"
-        },
-        "CONTROL3": {
-            "description": "Reserved control field for customer or ERP use",
-            "semantic_role": "reserved_control",
-            "value_source": "vendor_specific",
-            "x12_mapping": null,
-            "value_type": "optional"
+            "fixed_value": "0020"
         },
         "TP_CONTEXT": {
-            "description": "Trading Partner context or organization identifier",
-            "semantic_role": "erp_context",
-            "value_source": "erp_context",
-            "x12_mapping": null,
-            "value_type": "contextual"
+            "description": "Trading partner processing context or category",
+            "semantic_role": "trading_partner_context",
+            "value_source": "erp_configuration",
+            "value_type": "configured",
+            "notes": "Used by Oracle to drive conditional processing or routing logic"
         },
         "TP_ATTRIBUTE_1": {
-            "description": "Reserved attribute 1",
-            "semantic_role": "reserved_attribute",
-            "value_source": "vendor_specific",
-            "x12_mapping": null,
+            "description": "Trading partner custom attribute 1",
+            "semantic_role": "trading_partner_attribute",
+            "value_source": "erp_context",
             "value_type": "optional"
         },
         "TP_ATTRIBUTE_2": {
-            "description": "Reserved attribute 2",
-            "semantic_role": "reserved_attribute",
-            "value_source": "vendor_specific",
-            "x12_mapping": null,
+            "description": "Trading partner custom attribute 2",
+            "semantic_role": "trading_partner_attribute",
+            "value_source": "erp_context",
             "value_type": "optional"
         },
         "TP_ATTRIBUTE_3": {
-            "description": "Reserved attribute 3",
-            "semantic_role": "reserved_attribute",
-            "value_source": "vendor_specific",
-            "x12_mapping": null,
+            "description": "Trading partner custom attribute 3",
+            "semantic_role": "trading_partner_attribute",
+            "value_source": "erp_context",
             "value_type": "optional"
         },
         "TP_ATTRIBUTE_4": {
-            "description": "Reserved attribute 4",
-            "semantic_role": "reserved_attribute",
-            "value_source": "vendor_specific",
-            "x12_mapping": null,
+            "description": "Trading partner custom attribute 4",
+            "semantic_role": "trading_partner_attribute",
+            "value_source": "erp_context",
             "value_type": "optional"
         }
     }

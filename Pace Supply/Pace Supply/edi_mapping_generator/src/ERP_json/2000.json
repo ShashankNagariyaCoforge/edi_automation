@@ -1,0 +1,185 @@
+{
+    "record_number": "2000",
+    "record_name": "Item Identification",
+    "record_purpose": "Identifies purchase order line items including customer and internal item references",
+    "record_classification": {
+        "record_type_identifier": {
+            "value": "IT",
+            "source": "oracle_standard",
+            "description": "Identifies this record as an item record"
+        },
+        "record_layout_qualifier": {
+            "value": "ITM",
+            "source": "oracle_standard",
+            "description": "Item identification layout"
+        }
+    },
+    "fields": {
+        "TP_Translator_Code": {
+            "description": "Trading partner identifier used by the EDI translator",
+            "semantic_role": "trading_partner_identification",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "GS",
+                "element": "02",
+                "name": "Application Sender's Code"
+            },
+            "value_type": "inferred"
+        },
+        "Header_Identifier_Location_Identifier": {
+            "description": "Unique identifier of the purchase order header",
+            "semantic_role": "transaction_identity",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "BEG",
+                "element": "03",
+                "name": "Purchase Order Number"
+            },
+            "value_type": "inferred"
+        },
+        "Detail_Line_Identifier": {
+            "description": "Internal line reference used across line-level records",
+            "semantic_role": "line_reference",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "PO1",
+                "element": "01",
+                "name": "Assigned Identification"
+            },
+            "value_type": "inferred"
+        },
+        "Sub_Detail_Line_Identifier": {
+            "description": "Sub-line identifier for configurations or components",
+            "semantic_role": "sub_line_reference",
+            "value_source": "constant",
+            "value_type": "constant",
+            "fixed_value": ""
+        },
+        "Record_Number": {
+            "description": "Oracle record number",
+            "semantic_role": "record_identity",
+            "value_source": "constant",
+            "value_type": "constant",
+            "fixed_value": "2000"
+        },
+        "Customer_Line_Number": {
+            "description": "Customer-provided line number reference",
+            "semantic_role": "customer_line_reference",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "PO1",
+                "element": "01"
+            },
+            "value_type": "inferred"
+        },
+        "Line_Number": {
+            "description": "Oracle internal purchase order line number",
+            "semantic_role": "erp_line_number",
+            "value_source": "derived",
+            "value_type": "derived",
+            "notes": "Usually derived from PO1 sequence"
+        },
+        "Inventory_Item": {
+            "description": "Oracle inventory item number",
+            "semantic_role": "inventory_item_identifier",
+            "value_source": "erp_lookup",
+            "value_type": "lookup",
+            "notes": "Resolved via item cross-reference setup"
+        },
+        "Item_Revision": {
+            "description": "Revision level of the inventory item",
+            "semantic_role": "item_revision",
+            "value_source": "erp_lookup",
+            "value_type": "optional"
+        },
+        "Customer_Item_Name": {
+            "description": "Customer's item identifier or description",
+            "semantic_role": "customer_item_identifier",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "PO1",
+                "element": "07",
+                "name": "Product/Service ID"
+            },
+            "value_type": "inferred"
+        },
+        "Customer_Item_Revision": {
+            "description": "Customer's revision or version of the item",
+            "semantic_role": "customer_item_revision",
+            "value_source": "erp_context",
+            "value_type": "optional"
+        },
+        "CUSTOMER_ITEM_ID_TYPE": {
+            "description": "Qualifier identifying the type of customer item identifier",
+            "semantic_role": "item_identifier_qualifier",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "PO1",
+                "element": "06",
+                "name": "Product/Service ID Qualifier"
+            },
+            "value_type": "inferred",
+            "examples": [
+                "BP",
+                "VN",
+                "IN"
+            ]
+        },
+        "CUSTOMER_ITEM_ID_TYPE_ext1": {
+            "description": "Extended customer item identifier type",
+            "semantic_role": "vendor_extension",
+            "value_source": "vendor_specific",
+            "value_type": "optional"
+        },
+        "Orig_Sys_Document_Ref": {
+            "description": "Original system document reference",
+            "semantic_role": "source_document_reference",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "BEG",
+                "element": "03"
+            },
+            "value_type": "inferred"
+        },
+        "Orig_Sys_Line_Ref": {
+            "description": "Original system line reference",
+            "semantic_role": "source_line_reference",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "PO1",
+                "element": "01"
+            },
+            "value_type": "inferred"
+        },
+        "Item_Type_Code": {
+            "description": "Indicates the type of item being ordered",
+            "semantic_role": "item_type",
+            "value_source": "erp_configuration",
+            "value_type": "configured",
+            "examples": [
+                "STANDARD",
+                "SERVICE"
+            ]
+        },
+        "Item_Type_Code_EXT1": {
+            "description": "Extended item type code",
+            "semantic_role": "vendor_extension",
+            "value_source": "vendor_specific",
+            "value_type": "optional"
+        },
+        "LINE_TYPE": {
+            "description": "Oracle line type",
+            "semantic_role": "oracle_line_type",
+            "value_source": "erp_configuration",
+            "value_type": "configured",
+            "notes": "Examples: Goods, Services"
+        },
+        "BLANKET_NUMBER": {
+            "description": "Blanket purchase agreement reference number",
+            "semantic_role": "blanket_agreement_reference",
+            "value_source": "x12_or_erp_lookup",
+            "value_type": "optional",
+            "notes": "Derived from BPO or REF segment if provided"
+        }
+    }
+}

@@ -1,0 +1,219 @@
+{
+    "record_number": "3000",
+    "record_name": "Pricing and Configuration",
+    "record_purpose": "Holds pricing, quantity, and configuration details for a purchase order line",
+    "record_classification": {
+        "record_type_identifier": {
+            "value": "LN",
+            "source": "oracle_standard",
+            "description": "Identifies this record as a line-level pricing record"
+        },
+        "record_layout_qualifier": {
+            "value": "LN1",
+            "source": "oracle_standard",
+            "description": "Line pricing and configuration layout"
+        }
+    },
+    "fields": {
+        "TP_Translator_Code": {
+            "description": "Trading partner identifier used by the EDI translator",
+            "semantic_role": "trading_partner_identification",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "GS",
+                "element": "02"
+            },
+            "value_type": "inferred"
+        },
+        "Header_Identifier_Location_Identifier": {
+            "description": "Unique identifier of the purchase order header",
+            "semantic_role": "transaction_identity",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "BEG",
+                "element": "03"
+            },
+            "value_type": "inferred"
+        },
+        "Detail_Line_Identifier": {
+            "description": "Reference to the purchase order line",
+            "semantic_role": "line_reference",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "PO1",
+                "element": "01"
+            },
+            "value_type": "inferred"
+        },
+        "Sub_Detail_Line_Identifier": {
+            "description": "Sub-line identifier for configured or component items",
+            "semantic_role": "sub_line_reference",
+            "value_source": "constant",
+            "value_type": "constant",
+            "fixed_value": ""
+        },
+        "Record_Number": {
+            "description": "Oracle record number",
+            "semantic_role": "record_identity",
+            "value_source": "constant",
+            "value_type": "constant",
+            "fixed_value": "3000"
+        },
+        "Calculate_Price_Flag": {
+            "description": "Indicates whether Oracle should calculate pricing",
+            "semantic_role": "pricing_control",
+            "value_source": "erp_configuration",
+            "value_type": "configured",
+            "examples": [
+                "Y",
+                "N"
+            ]
+        },
+        "Pricing_Quantity": {
+            "description": "Quantity used for pricing calculations",
+            "semantic_role": "pricing_quantity",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "PO1",
+                "element": "02"
+            },
+            "value_type": "inferred"
+        },
+        "Pricing_Quantity_UOM": {
+            "description": "Unit of measure for the pricing quantity",
+            "semantic_role": "unit_of_measure",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "PO1",
+                "element": "03"
+            },
+            "value_type": "inferred"
+        },
+        "Pricing_Quantity_UOM_EXT1": {
+            "description": "Extended or alternate unit of measure",
+            "semantic_role": "vendor_extension",
+            "value_source": "vendor_specific",
+            "value_type": "optional"
+        },
+        "Customer_Item_Net_Price": {
+            "description": "Net unit price agreed with the customer",
+            "semantic_role": "net_unit_price",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "PO1",
+                "element": "04"
+            },
+            "value_type": "inferred"
+        },
+        "Unit_List_Price": {
+            "description": "List price per unit",
+            "semantic_role": "list_price",
+            "value_source": "erp_configuration",
+            "value_type": "derived"
+        },
+        "Unit_Selling_Price": {
+            "description": "Final selling price per unit",
+            "semantic_role": "selling_price",
+            "value_source": "derived",
+            "value_type": "derived",
+            "notes": "Often equals Customer_Item_Net_Price"
+        },
+        "Unit_Percent_Base_Price": {
+            "description": "Base price used for percentage-based pricing",
+            "semantic_role": "price_percentage_base",
+            "value_source": "erp_configuration",
+            "value_type": "derived"
+        },
+        "Unit_Selling_Percent": {
+            "description": "Selling price expressed as a percentage",
+            "semantic_role": "selling_percentage",
+            "value_source": "erp_configuration",
+            "value_type": "derived"
+        },
+        "Unit_List_Percent": {
+            "description": "List price expressed as a percentage",
+            "semantic_role": "list_price_percentage",
+            "value_source": "erp_configuration",
+            "value_type": "derived"
+        },
+        "Pricing_Date": {
+            "description": "Date on which pricing is effective",
+            "semantic_role": "pricing_effective_date",
+            "value_source": "erp_context",
+            "value_type": "contextual"
+        },
+        "Price_List": {
+            "description": "Oracle price list applied to the line",
+            "semantic_role": "price_list_reference",
+            "value_source": "erp_configuration",
+            "value_type": "configured"
+        },
+        "PRICE_LIST_EXT1": {
+            "description": "Extended price list identifier",
+            "semantic_role": "vendor_extension",
+            "value_source": "vendor_specific",
+            "value_type": "optional"
+        },
+        "Agreement": {
+            "description": "Pricing or purchasing agreement reference",
+            "semantic_role": "agreement_reference",
+            "value_source": "x12_or_erp_lookup",
+            "value_type": "optional",
+            "notes": "May be derived from REF segment or ERP setup"
+        },
+        "End_Item_Unit_Number": {
+            "description": "End item unit reference for configured items",
+            "semantic_role": "configured_item_reference",
+            "value_source": "erp_derived",
+            "value_type": "optional"
+        },
+        "Source_Type_Code": {
+            "description": "Indicates the pricing source type",
+            "semantic_role": "pricing_source",
+            "value_source": "erp_configuration",
+            "value_type": "configured"
+        },
+        "Option_Flag": {
+            "description": "Indicates whether the line is an option item",
+            "semantic_role": "configuration_flag",
+            "value_source": "erp_configuration",
+            "value_type": "optional"
+        },
+        "Top_Model_Line_Ref": {
+            "description": "Reference to the top-level model line",
+            "semantic_role": "model_reference",
+            "value_source": "derived",
+            "value_type": "optional"
+        },
+        "Link_To_Line_Ref": {
+            "description": "Reference to another related line",
+            "semantic_role": "line_relationship",
+            "value_source": "derived",
+            "value_type": "optional"
+        },
+        "Model_Group_Number": {
+            "description": "Group number for model configuration",
+            "semantic_role": "model_group",
+            "value_source": "erp_configuration",
+            "value_type": "optional"
+        },
+        "Option_Number": {
+            "description": "Option identifier within a configured model",
+            "semantic_role": "option_identifier",
+            "value_source": "erp_configuration",
+            "value_type": "optional"
+        },
+        "Component_Code": {
+            "description": "Component code for configured items",
+            "semantic_role": "component_reference",
+            "value_source": "erp_configuration",
+            "value_type": "optional"
+        },
+        "Sort_Order": {
+            "description": "Processing or display sequence order",
+            "semantic_role": "processing_order",
+            "value_source": "derived",
+            "value_type": "optional"
+        }
+    }
+}

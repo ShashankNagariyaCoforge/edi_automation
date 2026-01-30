@@ -1,0 +1,231 @@
+{
+  "record_number": "4800",
+  "record_name": "Ship-To Address (Line Level)",
+  "record_purpose": "Holds line-level Ship-To party address and organizational information when it differs from the header Ship-To",
+  "record_classification": {
+    "record_type_identifier": {
+      "value": "AD",
+      "source": "oracle_standard",
+      "description": "Identifies this record as an address record"
+    },
+    "record_layout_qualifier": {
+      "value": "ST1",
+      "source": "oracle_standard",
+      "description": "Ship-To address layout (line-level)"
+    }
+  },
+  "fields": {
+    "TP_Translator_Code": {
+      "description": "Trading partner identifier used by the EDI translator",
+      "semantic_role": "trading_partner_identification",
+      "value_source": "x12",
+      "x12_mapping": {
+        "segment": "GS",
+        "element": "02",
+        "name": "Application Sender's Code"
+      },
+      "value_type": "inferred"
+    },
+
+    "Header_Identifier_Location_Identifier": {
+      "description": "Unique identifier of the purchase order header",
+      "semantic_role": "transaction_identity",
+      "value_source": "x12",
+      "x12_mapping": {
+        "segment": "BEG",
+        "element": "03",
+        "name": "Purchase Order Number"
+      },
+      "value_type": "inferred"
+    },
+
+    "Detail_Line_Identifier": {
+      "description": "Reference to the purchase order line this Ship-To applies to",
+      "semantic_role": "line_reference",
+      "value_source": "x12",
+      "x12_mapping": {
+        "segment": "PO1",
+        "element": "01",
+        "name": "Assigned Identification"
+      },
+      "value_type": "inferred"
+    },
+
+    "Sub_Detail_Line_Identifier": {
+      "description": "Sub-line identifier for split shipments or components",
+      "semantic_role": "sub_line_reference",
+      "value_source": "constant",
+      "value_type": "constant",
+      "fixed_value": ""
+    },
+
+    "Record_Number": {
+      "description": "Oracle record number",
+      "semantic_role": "record_identity",
+      "value_source": "constant",
+      "value_type": "constant",
+      "fixed_value": "4800"
+    },
+
+    "Ship_To_Address_Code": {
+      "description": "Ship-To address code used internally by Oracle at line level",
+      "semantic_role": "erp_address_identifier",
+      "value_source": "erp_lookup",
+      "value_type": "lookup",
+      "notes": "Resolved via Oracle customer ship-to site setup"
+    },
+
+    "Ship_To_EDI_Location_Code": {
+      "description": "EDI location identifier for the Ship-To party",
+      "semantic_role": "edi_location_identifier",
+      "value_source": "x12_or_erp_lookup",
+      "x12_mapping": {
+        "segment": "N1",
+        "element": "04",
+        "name": "Identification Code"
+      },
+      "value_type": "lookup",
+      "notes": "Typically from N1 with Entity Identifier Code = ST"
+    },
+
+    "Ship_To_Address_Name": {
+      "description": "Name of the Ship-To party",
+      "semantic_role": "party_name",
+      "value_source": "x12",
+      "x12_mapping": {
+        "segment": "N1",
+        "element": "02",
+        "name": "Name"
+      },
+      "value_type": "inferred"
+    },
+
+    "Ship_To_Address1": {
+      "description": "Ship-To address line 1",
+      "semantic_role": "address_line",
+      "value_source": "x12",
+      "x12_mapping": {
+        "segment": "N3",
+        "element": "01",
+        "name": "Address Information"
+      },
+      "value_type": "inferred"
+    },
+
+    "Ship_To_Address2": {
+      "description": "Ship-To address line 2",
+      "semantic_role": "address_line",
+      "value_source": "x12",
+      "x12_mapping": {
+        "segment": "N3",
+        "element": "02",
+        "name": "Address Information"
+      },
+      "value_type": "optional"
+    },
+
+    "Ship_To_Address3": {
+      "description": "Ship-To address line 3",
+      "semantic_role": "address_line",
+      "value_source": "erp_context",
+      "value_type": "optional"
+    },
+
+    "Ship_To_Address4": {
+      "description": "Ship-To address line 4",
+      "semantic_role": "address_line",
+      "value_source": "erp_context",
+      "value_type": "optional"
+    },
+
+    "Ship_To_City": {
+      "description": "City for the Ship-To address",
+      "semantic_role": "city",
+      "value_source": "x12",
+      "x12_mapping": {
+        "segment": "N4",
+        "element": "01",
+        "name": "City Name"
+      },
+      "value_type": "inferred"
+    },
+
+    "Ship_To_Postal_Code": {
+      "description": "Postal or ZIP code for the Ship-To address",
+      "semantic_role": "postal_code",
+      "value_source": "x12",
+      "x12_mapping": {
+        "segment": "N4",
+        "element": "03",
+        "name": "Postal Code"
+      },
+      "value_type": "inferred"
+    },
+
+    "Ship_To_Country_INT": {
+      "description": "Internal Oracle country code for the Ship-To address",
+      "semantic_role": "country_internal",
+      "value_source": "erp_lookup",
+      "value_type": "lookup"
+    },
+
+    "Ship_To_Country_Ext1": {
+      "description": "External country code for the Ship-To address",
+      "semantic_role": "country_external",
+      "value_source": "x12",
+      "x12_mapping": {
+        "segment": "N4",
+        "element": "04",
+        "name": "Country Code"
+      },
+      "value_type": "inferred"
+    },
+
+    "Ship_To_State_INT": {
+      "description": "Internal Oracle state code for the Ship-To address",
+      "semantic_role": "state_internal",
+      "value_source": "erp_lookup",
+      "value_type": "lookup"
+    },
+
+    "Ship_To_State_Ext1": {
+      "description": "External state or province code for the Ship-To address",
+      "semantic_role": "state_external",
+      "value_source": "x12",
+      "x12_mapping": {
+        "segment": "N4",
+        "element": "02",
+        "name": "State or Province Code"
+      },
+      "value_type": "inferred"
+    },
+
+    "Ship_To_Province_INT": {
+      "description": "Internal Oracle province code for the Ship-To address",
+      "semantic_role": "province_internal",
+      "value_source": "erp_lookup",
+      "value_type": "optional"
+    },
+
+    "Ship_To_Province_Ext1": {
+      "description": "External province code for the Ship-To address",
+      "semantic_role": "province_external",
+      "value_source": "x12",
+      "value_type": "optional"
+    },
+
+    "Ship_To_County": {
+      "description": "County or district for the Ship-To address",
+      "semantic_role": "county",
+      "value_source": "erp_context",
+      "value_type": "optional"
+    },
+
+    "SHIP_TO_ORG": {
+      "description": "Oracle organization or operating unit associated with the Ship-To party",
+      "semantic_role": "erp_organization_context",
+      "value_source": "erp_context",
+      "value_type": "contextual"
+    }
+  }
+}

@@ -4,9 +4,9 @@ Uses AI to parse Vendor Implementation Guide PDF and extract structural constrai
 """
 import json
 from typing import Dict, Any, List
-from .ai_client import AIClient
-from .logger import get_logger
-from .pdf_extractor import extract_text_from_pdf
+from ai_client import AIClient
+from logger import get_logger
+from pdf_extractor import extract_text_from_pdf
 
 class PdfConstraintExtractor:
     """Extracts EDI constraints from PDF specifications."""

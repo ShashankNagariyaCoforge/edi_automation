@@ -5,9 +5,9 @@ import json
 import traceback
 from pathlib import Path
 from typing import Dict, List, Any
-from .ai_client import AIClient
-from .logger import get_logger
-from .standard_mappings import apply_standard_mappings
+from ai_client import AIClient
+from logger import get_logger
+from standard_mappings import apply_standard_mappings
 
 
 class RecordProcessor:
@@ -37,7 +37,7 @@ class RecordProcessor:
             fields: List of fields from the Excel structure needing mapping.
         
         Returns:
-            Dictionary with field mappings matching the Excel columns (B, C, D, E, J).
+            Dictionary with field mappings matching the Excel columns (B, C, D, E).
         """
         field_names = [f["field_name"] for f in fields]
         self.logger.info(f"Processing record {record_num} with {len(field_names)} fields (Phase 3)")
@@ -49,7 +49,7 @@ class RecordProcessor:
             return {}
 
         try:
-            prompt = self._build_phase3_prompt(record_num, field_names, record_def)
+            prompt = self._build_phase3_prompt(record_num, fields, record_def)
             
             response = self.ai_client.get_completion(
                 prompt,
@@ -60,10 +60,11 @@ class RecordProcessor:
             return mappings
             
         except Exception as e:
-            self.logger.error(f"LLM failure for record {record_num}: {e}\n{traceback.format_exc()}")
+            self.logger.error(f"LLM failure for record {record_num}: {e}\\n{traceback.format_exc()}")
             return {}
 
-    def _build_phase3_prompt(self, record_num: str, field_names: List[str], record_def: Dict[str, Any]) -> str:
+    def _build_phase3_prompt(self, record_num: str, fields: List[Dict[str, Any]], record_def: Dict[str, Any]) -> str:
+
         """Construct the prompt for Phase 3 including full JSON definition for semantic matching."""
         
         # Prepare Knowledge Base (JSON)
@@ -85,7 +86,8 @@ class RecordProcessor:
             "Your task is to prepare this mapping for a specific Record Group.",
             "",
             f"### CONTEXT: Record {record_num}",
-            f"Target Fields to Map: {json.dumps(field_names)}",
+            f"Target Fields to Map: {json.dumps([f['field_name'] for f in fields])}",
+            f"Logic Descriptions (Column J): {json.dumps({f['field_name']: f.get('logic_desc', '') for f in fields})}",
             "",
             "### STEP 1: CONSULT KNOWLEDGE BASE (Source of Truth)",
             "The following JSON defines the available fields and their rules.",
@@ -109,7 +111,7 @@ class RecordProcessor:
             "### STEP 4: GENERATE OUTPUT",
             "Based on the above, generate the mapping JSON for the requested Target Fields.",
             "Return a JSON object where keys are the specific Field Names from the 'Target Fields' list.",
-            'Values must be an object with keys: "B", "C", "J".',
+            'Values must be an object with keys: "B", "C".',
             "",
             "## COLUMN DEFINITIONS (CRITICAL)",
             "",
@@ -117,35 +119,42 @@ class RecordProcessor:
             "  - Format: SegmentElement (e.g., 'BEG03' means element 03 of BEG segment)",
             "  - Examples: 'GS02', 'BEG03', 'REF02', 'N102', 'PO101'",
             "  - If the field is NOT from EDI (constant/fixed), leave B EMPTY.",
+            "  - If logic depends on CONDITIONAL fields (see STEP 5), list ALL referenced segments here (e.g., 'N1, N2, N3').",
             "",
             "**Column C (VALUE)**: The FIXED/CONSTANT value if not derived from EDI.",
             "  - Use this ONLY when 'value_source' is 'constant', 'fixed_by_layout', 'oracle_standard', 'erp_constant' etc.",
             "  - Put the actual value here (e.g., '0010', 'CT', 'CTL', 'X12', '850').",
             "  - If the field IS from EDI (Column B populated), leave C EMPTY.",
             "",
-            "**Column J (LOGIC)**: Explain your reasoning briefly.",
-            "  - Example: 'Mapped from BEG03 per Knowledge Base' or 'Fixed value per oracle_standard'",
-            "  - If you found the field in the JSON but it has a fixed value, state that.",
+            "**Validation Warning (validation_warning)**:",
+            "  - Analyze the provided Logic Description vs Vendor Constraints.",
+            "  - If the logic depends on specific values (e.g., 'BEG02 = DS'), check if the Vendor Spec allows OTHER values (e.g., 'BG', 'SA').",
+            "  - If the logic does NOT cover all allowed values from the Vendor Spec, output a warning string here.",
+            "  - Example: 'Vendor Spec allows BEG02 values [DS, BG, SA] but logic only covers [DS].'",
+            "  - If ok, leave null or empty string.",
             "",
-            "## DECISION RULES",
-            "1. Search the Knowledge Base for the field definition (handle casing/spacing differences).",
-            "2. If found, check 'value_source' and 'x12_mapping'.",
-            "3. If value_source is 'x12' and x12_mapping exists → B = segment+element, C = empty",
-            "4. If value_source is 'constant', 'fixed_by_layout' → B = empty, C = fixed_value",
-            "5. If NOT found in Knowledge Base after searching → B = empty, C = empty, J = 'Cannot determine mapping - not in KB'",
+            "### STEP 5: HANDLE SPECIFIC LOGIC (Column J)",
+            "For each target field in request, I have provided 'Logic Description' if available.",
+            "1. If Logic Description says 'Constant X', put X in Column C, clear B.",
+            "2. If Logic Description has conditions (e.g., 'If BEG02=DS...'):",
+            "   - Extract all segments mentioned in the RESULT of the condition (e.g. 'take from N104' -> B='N104').",
+            "   - If multiple conditions lead to different segments, list them all in B (e.g. 'N1, N2, N3').",
+            "   - Perform the Validation Check described above.",
             "",
             "## JSON SCHEMA",
             "{",
             '  "Field_Name": {',
             '      "B": "EDI Source (e.g., BEG03) or empty",',
             '      "C": "Fixed Value or empty",',
-            '      "J": "Reasoning"',
+            '      "validation_warning": "Warning message or null"',
             "  }",
             "}",
             "",
             "IMPORTANT: Do NOT invent mappings. Only use what the Knowledge Base provides.",
             "Strict JSON only."
         ]
+        
+
         
         prompt = "\n".join(prompt_parts)
         return prompt

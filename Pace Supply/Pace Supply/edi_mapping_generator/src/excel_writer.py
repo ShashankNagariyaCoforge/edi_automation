@@ -3,12 +3,17 @@ Excel writer module for generating output mapping files.
 Preserves original Excel formatting by copying and editing the template.
 """
 import shutil
+import os
 import pandas as pd
+from dotenv import load_dotenv
 from pathlib import Path
+
+# Load environment variables
+load_dotenv(Path(__file__).parent.parent / ".env")
 from typing import Dict, Any, List
 from datetime import datetime
 from openpyxl import load_workbook
-from .logger import get_logger
+from logger import get_logger
 
 
 def write_mapping_output(
@@ -29,18 +34,32 @@ def write_mapping_output(
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_file = output_dir / f"generated_mapping_{timestamp}.xlsx"
     
-    # Template: Use the same file we read structure from?
-    # Usually we copy "ERP_definition.xlsx" or "inbound_X12...".
-    # We should have the path sourced from main.
-    # Let's assume "input/ERP_definition.xlsx" is the base to copy, or the one passed in main. 
-    # But this function doesn't take input path.
-    # I'll try to find it again or hardcode "input/ERP_definition.xlsx" as the source to copy, 
-    # assuming we are modifying THAT file structure.
-    # The prompt said: "Output: The same ERP_Definition Excel file... populated".
+    # Template: Source from configured path
+    input_template_path = None
     
-    input_template_path = Path("input/inbound_X12_to_oracle.xlsx")
-    if not input_template_path.exists():
-         input_template_path = Path("inbound_X12_to_oracle.xlsx") # fallback
+    # Check env var first
+    env_erp_path = os.getenv("ERP_DEFINITION_PATH")
+    base_dir = Path(__file__).parent.parent
+    
+    erp_files = []
+    if env_erp_path:
+            p = Path(env_erp_path)
+            if not p.is_absolute():
+                p = base_dir / p
+            erp_files.append(p)
+
+    # Fallbacks
+    erp_files.append(base_dir / "input" / "inbound_X12_to_oracle.xlsx")
+    erp_files.append(base_dir / "inbound_X12_to_oracle.xlsx")
+    erp_files.append(base_dir / "ERP_Definition.xlsx")
+    
+    for f in erp_files:
+        if f.exists():
+            input_template_path = f
+            break
+            
+    if not input_template_path:
+         raise FileNotFoundError(f"Mapping template file not found. Searched in: {[str(f) for f in erp_files]}")
 
     logger.info(f"Copying template {input_template_path} to: {output_file}")
     shutil.copy2(input_template_path, output_file)
@@ -61,7 +80,7 @@ def write_mapping_output(
     
     # Col Mapping: 1-based indices
     # B=2, C=3, D=4, E=5, J=10
-    col_map = {"B": 2, "C": 3, "D": 4, "E": 5, "J": 10}
+    col_map = {"B": 2, "C": 3, "D": 4, "E": 5}
     
     for rec_id, fields_list in structure.items():
         rec_mappings = mappings.get(rec_id, {})

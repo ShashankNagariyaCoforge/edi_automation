@@ -5,7 +5,7 @@ Phase 1: Read structure/layout to allow deterministic updates later.
 from typing import Dict, List, Any
 from pathlib import Path
 from openpyxl import load_workbook
-from .logger import get_logger
+from logger import get_logger
 
 
 def read_erp_structure(file_path: str) -> Dict[str, List[Dict[str, Any]]]:
@@ -86,7 +86,8 @@ def read_erp_structure(file_path: str) -> Dict[str, List[Dict[str, Any]]]:
         item = {
             "row_idx": i,
             "field_name": field_name,
-            "record_ref": rec_id
+            "record_ref": rec_id,
+            "logic_desc": str(row[9]).strip() if len(row) > 9 and row[9] else ""
         }
         
         if rec_id not in structure:
@@ -97,3 +98,39 @@ def read_erp_structure(file_path: str) -> Dict[str, List[Dict[str, Any]]]:
     logger.info(f"Read structure: {len(structure)} record types, {processed_count} fields.")
     wb.close()
     return structure
+
+def read_full_sheet_data(file_path: str) -> List[List[Any]]:
+    """
+    Read the entire target sheet as a grid of values.
+    Returns a list of rows, where each row is a list of cell values.
+    """
+    logger = get_logger()
+    path = Path(file_path)
+    if not path.exists():
+        raise FileNotFoundError(f"Excel file not found: {file_path}")
+    
+    wb = load_workbook(path, data_only=True)
+    target_sheet = None
+    for name in wb.sheetnames:
+        if "inbound" in name.lower() and "oracle" in name.lower():
+            target_sheet = wb[name]
+            break
+    
+    if not target_sheet:
+        target_sheet = wb.active
+
+    data = []
+    # Force max_column to exactly 10 (Columns A-J) as requested
+    max_col = 10
+    
+    # min_row=1 to get headers as well
+    for row in target_sheet.iter_rows(min_row=1, max_col=max_col, values_only=True):
+        # Ensure row is a list and pad it if it's shorter than max_col
+        row_list = list(row) if row else []
+        if len(row_list) < max_col:
+            row_list.extend([None] * (max_col - len(row_list)))
+        data.append(row_list)
+    
+    wb.close()
+    logger.info(f"Read {len(data)} rows and {max_col} columns from Excel.")
+    return data

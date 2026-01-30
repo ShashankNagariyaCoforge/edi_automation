@@ -1,178 +1,167 @@
 {
     "record_number": "1070",
-    "record_purpose": "Physical address and geographic details for a previously identified party",
+    "record_name": "Payment Terms and Tax Information",
+    "record_purpose": "Holds customer payment terms, tax exemption, tax point, and price list information for the purchase order header",
     "record_classification": {
         "record_type_identifier": {
             "value": "PY",
             "source": "oracle_standard",
-            "description": "Identifies this record as an address-related record"
+            "description": "Identifies this record as payment and tax information"
         },
         "record_layout_qualifier": {
             "value": "TAX",
             "source": "oracle_standard",
-            "description": "Specifies address detail layout"
+            "description": "Payment and tax record layout"
         }
     },
     "fields": {
-        "Address_Line_1": {
-            "description": "First line of the street address",
-            "semantic_role": "address_street",
+        "TP_Translator_Code": {
+            "description": "Trading partner identifier used by the EDI translator",
+            "semantic_role": "trading_partner_identification",
             "value_source": "x12",
             "x12_mapping": {
-                "segment": "N3",
+                "segment": "GS",
+                "element": "02"
+            },
+            "value_type": "inferred"
+        },
+        "Header_Identifier_Location_Identifier": {
+            "description": "Unique identifier of the purchase order header",
+            "semantic_role": "transaction_identity",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "BEG",
+                "element": "03"
+            },
+            "value_type": "inferred"
+        },
+        "Detail_Line_Identifier": {
+            "description": "Detail line reference identifier",
+            "semantic_role": "detail_reference",
+            "value_source": "constant",
+            "value_type": "constant",
+            "fixed_value": ""
+        },
+        "Sub_Detail_Line_Identifier": {
+            "description": "Sub-detail line reference identifier",
+            "semantic_role": "sub_detail_reference",
+            "value_source": "constant",
+            "value_type": "constant",
+            "fixed_value": ""
+        },
+        "Record_Number": {
+            "description": "Oracle record number",
+            "semantic_role": "record_identity",
+            "value_source": "constant",
+            "value_type": "constant",
+            "fixed_value": "1070"
+        },
+        "CUSTOMER_PAYMENT_TERM": {
+            "description": "Customer payment terms code",
+            "semantic_role": "payment_terms",
+            "value_source": "x12_or_erp_lookup",
+            "x12_mapping": {
+                "segment": "ITD",
                 "element": "01",
-                "name": "Address Information"
-            },
-            "value_type": "inferred",
-            "fixed_value": null
-        },
-        "Address_Line_2": {
-            "description": "Second line of the street address",
-            "semantic_role": "address_street",
-            "value_source": "x12",
-            "x12_mapping": {
-                "segment": "N3",
-                "element": "02",
-                "name": "Address Information"
-            },
-            "value_type": "inferred",
-            "fixed_value": null,
-            "notes": "Optional; may be absent in many EDI documents"
-        },
-        "City_Name": {
-            "description": "City of the address",
-            "semantic_role": "address_city",
-            "value_source": "x12",
-            "x12_mapping": {
-                "segment": "N4",
-                "element": "01",
-                "name": "City Name"
-            },
-            "value_type": "inferred",
-            "fixed_value": null
-        },
-        "State_Province_Code": {
-            "description": "State or province code",
-            "semantic_role": "address_state",
-            "value_source": "x12",
-            "x12_mapping": {
-                "segment": "N4",
-                "element": "02",
-                "name": "State or Province Code"
-            },
-            "value_type": "inferred",
-            "fixed_value": null
-        },
-        "Postal_Code": {
-            "description": "Postal or ZIP code",
-            "semantic_role": "address_postal_code",
-            "value_source": "x12",
-            "x12_mapping": {
-                "segment": "N4",
-                "element": "03",
-                "name": "Postal Code"
-            },
-            "value_type": "inferred",
-            "fixed_value": null
-        },
-        "Country_Code": {
-            "description": "Country code of the address",
-            "semantic_role": "address_country",
-            "value_source": "x12",
-            "x12_mapping": {
-                "segment": "N4",
-                "element": "04",
-                "name": "Country Code"
-            },
-            "value_type": "inferred",
-            "fixed_value": null,
-            "notes": "May be optional for domestic transactions"
-        },
-        "Geographic_Location_Qualifier": {
-            "description": "Qualifier indicating type of geographic location code",
-            "semantic_role": "geographic_qualifier",
-            "value_source": "x12",
-            "x12_mapping": {
-                "segment": "N4",
-                "element": "05",
-                "name": "Location Qualifier"
-            },
-            "value_type": "inferred",
-            "fixed_value": null,
-            "notes": "Rarely used; often blank"
-        },
-        "Geographic_Location_Code": {
-            "description": "Additional geographic location code",
-            "semantic_role": "geographic_identifier",
-            "value_source": "x12",
-            "x12_mapping": {
-                "segment": "N4",
-                "element": "06",
-                "name": "Location Identifier"
-            },
-            "value_type": "inferred",
-            "fixed_value": null,
-            "notes": "Used only if qualifier is present"
-        },
-        "TP_Location_Code": {
-            "description": "ERP-specific trading partner site resolved from address details",
-            "semantic_role": "trading_partner_resolution",
-            "value_source": "erp_lookup",
-            "x12_mapping": {
-                "lookup_keys": [
-                    "N1_01",
-                    "N1_04",
-                    "N3",
-                    "N4"
-                ]
+                "name": "Terms Type Code"
             },
             "value_type": "lookup",
-            "fixed_value": null,
-            "notes": "Used to match address to ERP site/location"
+            "notes": "Mapped to Oracle payment terms; ITD segment may be absent"
         },
-        "Address_Format_Code": {
-            "description": "Indicates formatting rules for the address",
-            "semantic_role": "address_format",
-            "value_source": "derived",
-            "x12_mapping": null,
+        "CUSTOMER_PAYMENT_TERM_EXT1": {
+            "description": "Extended customer payment term information",
+            "semantic_role": "vendor_extension",
+            "value_source": "vendor_specific",
+            "value_type": "optional"
+        },
+        "CUSTOMER_PAYMENT_TERM_EXT2": {
+            "description": "Extended customer payment term information",
+            "semantic_role": "vendor_extension",
+            "value_source": "vendor_specific",
+            "value_type": "optional"
+        },
+        "CUSTOMER_PAYMENT_TERM_EXT3": {
+            "description": "Extended customer payment term information",
+            "semantic_role": "vendor_extension",
+            "value_source": "vendor_specific",
+            "value_type": "optional"
+        },
+        "CUSTOMER_PAYMENT_TERM_EXT4": {
+            "description": "Extended customer payment term information",
+            "semantic_role": "vendor_extension",
+            "value_source": "vendor_specific",
+            "value_type": "optional"
+        },
+        "CUSTOMER_PAYMENT_TERM_EXT5": {
+            "description": "Extended customer payment term information",
+            "semantic_role": "vendor_extension",
+            "value_source": "vendor_specific",
+            "value_type": "optional"
+        },
+        "Tax_Exempt_Flag": {
+            "description": "Indicates whether the transaction is tax exempt",
+            "semantic_role": "tax_exemption_indicator",
+            "value_source": "x12_or_erp_lookup",
+            "x12_mapping": {
+                "segment": "TXI",
+                "element": "01",
+                "name": "Tax Type Code"
+            },
             "value_type": "derived",
-            "fixed_value": null,
-            "notes": "Derived by ERP based on country or localization rules"
+            "notes": "Derived from TXI segment or ERP customer setup"
         },
-        "Document_Standard": {
-            "description": "EDI standard governing this record",
-            "semantic_role": "edi_standard",
-            "value_source": "constant",
-            "x12_mapping": null,
-            "value_type": "constant",
-            "fixed_value": "X12"
-        },
-        "Org_ID": {
-            "description": "ERP operating unit or organization context",
-            "semantic_role": "erp_context",
+        "Tax_Exempt_Number": {
+            "description": "Tax exemption certificate or number",
+            "semantic_role": "tax_exemption_reference",
             "value_source": "erp_context",
-            "x12_mapping": null,
-            "value_type": "contextual"
-        },
-        "CONTROL1": {
-            "description": "Reserved address control field for ERP or customer use",
-            "semantic_role": "reserved_control",
-            "value_source": "vendor_specific",
-            "x12_mapping": null,
             "value_type": "optional"
         },
-        "CONTROL2": {
-            "description": "Reserved address control field for ERP or customer use",
-            "semantic_role": "reserved_control",
-            "value_source": "vendor_specific",
-            "x12_mapping": null,
+        "Tax_Exempt_Reason": {
+            "description": "Free-text reason for tax exemption",
+            "semantic_role": "tax_exemption_reason",
+            "value_source": "erp_context",
             "value_type": "optional"
         },
-        "CONTROL3": {
-            "description": "Reserved address control field for ERP or customer use",
-            "semantic_role": "reserved_control",
+        "Tax_Exempt_Reason_Code": {
+            "description": "Code representing the reason for tax exemption",
+            "semantic_role": "tax_exemption_reason_code",
+            "value_source": "erp_configuration",
+            "value_type": "optional"
+        },
+        "Tax_Exempt_Reason_Code_Ext1": {
+            "description": "Extended tax exemption reason code",
+            "semantic_role": "vendor_extension",
             "value_source": "vendor_specific",
-            "x12_mapping": null,
+            "value_type": "optional"
+        },
+        "TAX_POINT": {
+            "description": "Tax point or tax calculation location",
+            "semantic_role": "tax_point",
+            "value_source": "erp_configuration",
+            "value_type": "configured"
+        },
+        "TAX_POINT_CODE": {
+            "description": "Tax point code",
+            "semantic_role": "tax_point_code",
+            "value_source": "erp_configuration",
+            "value_type": "configured"
+        },
+        "TAX_POINT_CODE_ext1": {
+            "description": "Extended tax point code",
+            "semantic_role": "vendor_extension",
+            "value_source": "vendor_specific",
+            "value_type": "optional"
+        },
+        "PRICE_LIST": {
+            "description": "Oracle price list applicable to the purchase order",
+            "semantic_role": "price_list_reference",
+            "value_source": "erp_configuration",
+            "value_type": "configured"
+        },
+        "PRICE_LIST_EXT1": {
+            "description": "Extended price list identifier",
+            "semantic_role": "vendor_extension",
+            "value_source": "vendor_specific",
             "value_type": "optional"
         }
     }

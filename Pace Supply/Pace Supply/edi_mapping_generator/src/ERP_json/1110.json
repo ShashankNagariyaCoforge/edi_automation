@@ -1,17 +1,17 @@
 {
-    "record_number": "1200",
-    "record_name": "PO Header Attributes (1–4)",
-    "record_purpose": "Holds Oracle Purchase Order header descriptive flexfield attributes 1 through 4 for categorization and custom metadata",
+    "record_number": "1110",
+    "record_name": "Ship Request Date",
+    "record_purpose": "Holds the requested ship date for the purchase order at the header level",
     "record_classification": {
         "record_type_identifier": {
-            "value": "A1",
+            "value": "NT",
             "source": "oracle_standard",
-            "description": "Identifies this record as a PO header attribute record"
+            "description": "Identifies this record as a header-level note/date record"
         },
         "record_layout_qualifier": {
-            "value": "PO1",
+            "value": "SHPD",
             "source": "oracle_standard",
-            "description": "Header attribute layout for attributes 1–4"
+            "description": "Shipping date record layout"
         }
     },
     "fields": {
@@ -56,38 +56,19 @@
             "semantic_role": "record_identity",
             "value_source": "constant",
             "value_type": "constant",
-            "fixed_value": "1200"
+            "fixed_value": "1110"
         },
-        "PO_Header_Category": {
-            "description": "Descriptive flexfield category for the PO header",
-            "semantic_role": "flexfield_category",
-            "value_source": "erp_configuration",
-            "value_type": "configured",
-            "notes": "Determines which PO header attributes are enabled and interpreted by Oracle"
-        },
-        "PO_Header_Attribute_1": {
-            "description": "PO header descriptive flexfield attribute 1",
-            "semantic_role": "flexfield_attribute",
-            "value_source": "erp_context",
-            "value_type": "optional"
-        },
-        "PO_Header_Attribute_2": {
-            "description": "PO header descriptive flexfield attribute 2",
-            "semantic_role": "flexfield_attribute",
-            "value_source": "erp_context",
-            "value_type": "optional"
-        },
-        "PO_Header_Attribute_3": {
-            "description": "PO header descriptive flexfield attribute 3",
-            "semantic_role": "flexfield_attribute",
-            "value_source": "erp_context",
-            "value_type": "optional"
-        },
-        "PO_Header_Attribute_4": {
-            "description": "PO header descriptive flexfield attribute 4",
-            "semantic_role": "flexfield_attribute",
-            "value_source": "erp_context",
-            "value_type": "optional"
+        "Ship_Request_Date": {
+            "description": "Date on which shipment is requested by the buyer",
+            "semantic_role": "shipping_schedule_date",
+            "value_source": "x12",
+            "x12_mapping": {
+                "segment": "DTM",
+                "qualifier": "010",
+                "name": "Requested Ship Date"
+            },
+            "value_type": "inferred",
+            "notes": "If DTM*010 is not present, ERP may derive from other requested delivery dates"
         }
     }
 }
