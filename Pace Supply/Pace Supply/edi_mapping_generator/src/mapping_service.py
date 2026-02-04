@@ -10,6 +10,7 @@ import yaml
 from dotenv import load_dotenv
 from pathlib import Path
 from record_processor import RecordProcessor
+from parallel_executor import ParallelExecutor
 from ai_client import AIClient
 from pdf_constraint_extractor import PdfConstraintExtractor
 from edi_parser import parse_edi_file
@@ -18,9 +19,9 @@ from excel_writer import write_mapping_output
 from logger import get_logger
 
 # 856 Imports
-from src.flow_856.pdf_processor import PdfProcessor856
-from src.flow_856.mapping_engine import MappingEngine856
-from src.flow_856.excel_builder import ExcelBuilder856
+from flow_856.pdf_processor import PdfProcessor856
+from flow_856.mapping_engine import MappingEngine856
+from flow_856.excel_builder import ExcelBuilder856
 
 # Load environment variables
 load_dotenv(Path(__file__).parent.parent / ".env")
@@ -47,6 +48,7 @@ class MappingService:
             auth_header_name=config.get("auth_header_name")
         )
         self.pdf_parser = PdfConstraintExtractor(self.ai_client)
+        self.parallel_executor = ParallelExecutor(max_threads=config.get("max_threads", 5))
         # Store sessions in memory for now
         self.sessions: Dict[str, Any] = {}
 
@@ -63,6 +65,50 @@ class MappingService:
         }
         return session_id
 
+    def query_pdf_spec(self, session_id: str, query: str) -> str:
+        """
+        Searches the Session PDF for answers using LLM.
+        """
+        session = self.sessions.get(session_id)
+        if not session or not session.get("pdf_path"):
+            return "Error: No PDF loaded in session."
+            
+        from pdf_extractor import extract_text_from_pdf
+        try:
+            # Cache text to avoid re-reading
+            if "pdf_text" not in session:
+                self.logger.info(f"Extracting PDF text for search (Session {session_id})")
+                full_text = extract_text_from_pdf(session["pdf_path"])
+                
+                # Cap at 120k chars (gpt-4o context is 128k, safe margin)
+                if len(full_text) > 120000:
+                     full_text = full_text[:120000] + "\n...[TRUNCATED]"
+                session["pdf_text"] = full_text
+            
+            text = session["pdf_text"]
+            
+            prompt = f"""
+            You are an EDI Specification Expert.
+            Using the following TEXT extracted from the Vendor PDF, answer the user's question.
+            
+            PDF CONTEXT (Truncated if too large):
+            {text}
+            
+            USER QUESTION:
+            {query}
+            
+            INSTRUCTIONS:
+            - Answer strictly based on the provided text.
+            - If listing elements (e.g. BSN fields), try to list all found in text.
+            - If information is missing, state it clearly.
+            """
+            
+            return self.ai_client.get_completion(prompt, system_prompt="You are a helpful EDI assistant.")
+            
+        except Exception as e:
+            self.logger.error(f"Search failed: {e}")
+            return f"Error searching PDF: {str(e)}"
+
     def generate_mapping(self, session_id: str):
         session = self.sessions.get(session_id)
         if not session:
@@ -71,7 +117,9 @@ class MappingService:
         session["status"] = "processing"
         
         # 1. Parse EDI
-        edi_parsed = parse_edi_file(session["edi_content"])
+        edi_parsed = {}
+        if session.get("edi_content"):
+            edi_parsed = parse_edi_file(session["edi_content"])
         
         # 2. Parse PDF
         constraints = self.pdf_parser.extract_constraints(session["pdf_path"])
@@ -115,10 +163,14 @@ class MappingService:
         # 4. Processor
         processor = RecordProcessor(self.ai_client, edi_parsed, constraints)
         
-        mappings = {}
-        for rec_id, fields in structure.items():
-            rec_map = processor.process_record(rec_id, fields)
-            mappings[rec_id] = rec_map
+        # Determine records to process
+        # Convert structure dict to what processor expects if needed, 
+        # but process_records_parallel iterates the dict items which matches.
+        
+        mappings = self.parallel_executor.process_records_parallel(
+            structure,
+            processor.process_record
+        )
             
         # 5. Merge AI results into full grid for UI
         # We need to find the correct rows in the grid and update Col B (idx 1), Col C (idx 2)
@@ -241,13 +293,18 @@ class MappingService:
             
             # Logic to populate grid columns
             source = ""
+            # User Correction: "Source" type does not exist, it is "Translation"
             if typ == "Source":
-                if rec and field:
-                    source = f"{rec}/{pos if pos else '???'}"
-                    meaning = field
-            elif typ == "Translation":
+                typ = "Translation"
+
+            if typ == "Translation":
                 # Translation: Meaning = Desc, Hardcode = Codes, Source = Rec/Pos
+                # If it was originally Source, meaning might just be field name, 
+                # but let's try to use logic/desc if available, fallback to field
                 meaning = item.get("logic", "") + " " + item.get("description", "")
+                if not meaning.strip():
+                     meaning = field
+                     
                 if rec and field:
                      source = f"{rec}/{pos if pos else '???'}"
             elif typ == "Constant":

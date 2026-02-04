@@ -30,8 +30,29 @@ Automated EDI mapping generation tool that analyzes partner PDF specifications a
    api_provider: "openai"  # or "anthropic"
    api_key: "your-api-key-here"
    model: "gpt-4o"
+   api_key: "your-api-key-here"
+   model: "gpt-4o"
    max_threads: 5
    ```
+
+## Web Application (New)
+
+The project now includes a modern Web UI and Agentic Copilot.
+
+### 1. Start Backend API
+```bash
+cd src
+python api_server.py
+# Server will start at http://0.0.0.0:8001
+```
+
+### 2. Start Frontend UI
+```bash
+cd src/web
+npm install
+npm run dev -- --host --port 5174
+# UI will be available at http://localhost:5174
+```
 
 ## Folder Structure
 

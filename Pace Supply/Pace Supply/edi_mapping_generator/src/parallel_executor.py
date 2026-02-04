@@ -3,7 +3,7 @@ Parallel executor module for concurrent record processing.
 """
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Dict, List, Any, Callable
-from .logger import get_logger
+from logger import get_logger
 
 
 class ParallelExecutor:

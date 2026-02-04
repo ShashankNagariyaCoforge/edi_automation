@@ -2,8 +2,8 @@ from typing import Dict, Any, List
 from pathlib import Path
 import json
 from openpyxl import load_workbook
-from src.ai_client import AIClient
-from src.logger import get_logger
+from ai_client import AIClient
+from logger import get_logger
 
 class MappingEngine856:
     """

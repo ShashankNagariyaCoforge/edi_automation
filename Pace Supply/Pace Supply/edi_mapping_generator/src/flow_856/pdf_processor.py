@@ -1,8 +1,8 @@
 import json
 from typing import Dict, Any, List
-from src.ai_client import AIClient
-from src.logger import get_logger
-from src.pdf_extractor import extract_text_from_pdf
+from ai_client import AIClient
+from logger import get_logger
+from pdf_extractor import extract_text_from_pdf
 
 class PdfProcessor856:
     """

@@ -11,7 +11,12 @@ class ExcelBuilder856:
     """
     
     def __init__(self, template_path: str = "856/PaceSupply_856_Outbound.xlsx"):
-        self.template_path = Path(template_path)
+        # Resolve path relative to project root (parent of src)
+        # __file__ is src/flow_856/excel_builder.py
+        # parent.parent is src/
+        # parent.parent.parent is project root
+        project_root = Path(__file__).parent.parent.parent
+        self.template_path = project_root / template_path
         if not self.template_path.exists():
             # Fallback path logic if needed
             pass
@@ -79,35 +84,23 @@ class ExcelBuilder856:
             # 1. Segment (Col A) - Grouping logic
             segment = item.get("segment", "")
             if segment == last_segment:
-                ws.cell(row=row_idx, column=1, value=None)
+                self._safe_write(ws, row_idx, 1, None)
             else:
-                ws.cell(row=row_idx, column=1, value=segment)
+                self._safe_write(ws, row_idx, 1, segment)
                 last_segment = segment
                 
-            # 2. Occ/Max (Col B) - Not currently extracted, leave blank or default
-            # ws.cell(row=row_idx, column=2, value="")
-            
-            # 3. Element (Col C) - e.g. ST01
+            # 3. Element (Col C)
             element = item.get("element", "")
-            # Ensure we show the full code if not present. item['element'] usually is 'ST01'
-            ws.cell(row=row_idx, column=3, value=element)
+            self._safe_write(ws, row_idx, 3, element)
             
-            # 6. Description (Col G)
-            # This corresponds to "Meaning" in template
+            # 6. Description (Col G) - Default
             desc = item.get("logic", "")
-            # Clean up "Direct Map - " prefix if present? The user template has "Meaning" blank in row 2...
-            # But earlier user said "Description". Let's put it in G.
-            ws.cell(row=row_idx, column=7, value=desc)
+            self._safe_write(ws, row_idx, 7, desc)
             
-            # 7. Requirement (Col H)
-            # We don't have this explicitly in 'mappings' dict from Engine, 
-            # BUT we might have it if we passed it through.
-            # The Engine takes 'mandatory_segments'.
-            # We can default to 'M' since we only extracted Mandatory.
-            ws.cell(row=row_idx, column=8, value="Mandatory")
+            # 7. Requirement (Col H) - Default Mandatory
+            self._safe_write(ws, row_idx, 8, "Mandatory")
             
-            # MAPPING LOGIC (Type, Source, Hardcode)
-            # Prefer explicit values from item (if edited or inferred and stored)
+            # MAPPING LOGIC
             typ = item.get("type", "")
             hardcode = item.get("hardcode", "")
             
@@ -115,44 +108,42 @@ class ExcelBuilder856:
             field = item.get("erp_field", "")
             pos = item.get("erp_position", "")
 
-            # If type is explicit, use it.
             if typ:
-                ws.cell(row=row_idx, column=4, value=typ)
+                self._safe_write(ws, row_idx, 4, typ)
                 
                 if typ == "Source":
-                     # Col E: just record/pos
                      if rec and pos:
-                         map_rec_pos = f"{rec}/{pos}"
-                         ws.cell(row=row_idx, column=5, value=map_rec_pos)
-                         
-                     # Col G (Meaning): ERP Field Name
-                     ws.cell(row=row_idx, column=7, value=field)
+                         self._safe_write(ws, row_idx, 5, f"{rec}/{pos}")
+                     self._safe_write(ws, row_idx, 7, field)
                      
                 elif typ in ["Constant", "Translation"]:
-                     # Col F: Hardcode
-                     ws.cell(row=row_idx, column=6, value=hardcode)
-                     # Col G (Meaning): Description
-                     ws.cell(row=row_idx, column=7, value=desc)
+                     self._safe_write(ws, row_idx, 6, hardcode)
+                     self._safe_write(ws, row_idx, 7, desc)
                      
                      if typ == "Translation" and rec and pos:
-                         # Translation also needs Source Mapping
-                         ws.cell(row=row_idx, column=5, value=f"{rec}/{pos}")
-                     
+                         self._safe_write(ws, row_idx, 5, f"{rec}/{pos}")
                 else:
-                     # Sequence, Inherit, Count
-                     # Col G (Meaning): Description
-                     ws.cell(row=row_idx, column=7, value=desc)
-
+                     self._safe_write(ws, row_idx, 7, desc)
             else:
-                # Fallback logic if Type not present (shouldn't happen with new Engine logic)
-                ws.cell(row=row_idx, column=7, value=desc) # Fallback meaning
-                
+                self._safe_write(ws, row_idx, 7, desc)
                 if rec and field:
-                    ws.cell(row=row_idx, column=4, value="Source")
-                    ws.cell(row=row_idx, column=5, value=f"{rec}/{pos}")
-                    ws.cell(row=row_idx, column=7, value=field)
-                else:
-                    pass
+                    self._safe_write(ws, row_idx, 4, "Source")
+                    self._safe_write(ws, row_idx, 7, field)
+                    if pos:
+                         self._safe_write(ws, row_idx, 5, f"{rec}/{pos}")
 
         wb.save(final_path)
         return str(final_path)
+
+    def _safe_write(self, ws, row, col, value):
+        from openpyxl.cell.cell import MergedCell
+        cell = ws.cell(row=row, column=col)
+        if isinstance(cell, MergedCell):
+            for merged_range in ws.merged_cells.ranges:
+                if cell.coordinate in merged_range:
+                    top_left = ws.cell(row=merged_range.min_row, column=merged_range.min_col)
+                    top_left.value = value
+                    return
+        else:
+            cell.value = value
+

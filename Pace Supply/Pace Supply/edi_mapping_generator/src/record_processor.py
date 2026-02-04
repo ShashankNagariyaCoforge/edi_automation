@@ -48,16 +48,65 @@ class RecordProcessor:
             self.logger.warning(f"No Canonical JSON found for record {record_num}")
             return {}
 
+        # 2. Normalize and Deduplicate Fields for Prompt
+        # Map normalized_name -> list of original_field_dicts
+        norm_map = {}
+        for f in fields:
+            norm = self._normalize_field_name(f["field_name"])
+            if norm not in norm_map:
+                norm_map[norm] = []
+            norm_map[norm].append(f)
+            
+        unique_targets = list(norm_map.keys())
+        
+        # Create a simplified list of fields for the PROMPT using normalized names
+        # We pick the first occurrence's logic description, or merge them?
+        # Let's pick the one that has length > 0, if any.
+        prompt_fields = []
+        for norm in unique_targets:
+            # Find best logic desc
+            best_logic = ""
+            for orig in norm_map[norm]:
+                l = orig.get("logic_desc", "")
+                if l and hasattr(l, 'strip'):
+                     l = l.strip()
+                if l and len(l) > len(best_logic):
+                    best_logic = l
+            
+            # DEBUG: Log logic decision for critical fields
+            if record_num == "0010":
+                self.logger.info(f"Field Debug [0010]: {norm} -> Logic: '{best_logic}'")
+            elif "Header_Identifier" in norm or "TP_Translator" in norm:
+                self.logger.info(f"Field Debug: {norm} -> Logic: '{best_logic}'")
+
+            prompt_fields.append({
+                "field_name": norm,
+                "logic_desc": best_logic
+            })
+
         try:
-            prompt = self._build_phase3_prompt(record_num, fields, record_def)
+            # Pass unique normalized fields to prompt
+            prompt = self._build_phase3_prompt(record_num, prompt_fields, record_def)
             
             response = self.ai_client.get_completion(
                 prompt,
                 system_prompt="You are an EDI Mapping Engine. Output strict JSON only. Do not invent fields."
             )
             
-            mappings = self.ai_client._parse_response(response, field_names)
-            return mappings
+            # Parse response expecting normalized keys
+            unique_mappings = self.ai_client._parse_response(response, unique_targets)
+            
+            # 3. Fan-out results to original field names
+            final_mappings = {}
+            for original_field in fields:
+                name = original_field["field_name"]
+                norm = self._normalize_field_name(name)
+                if norm in unique_mappings:
+                    final_mappings[name] = unique_mappings[norm]
+                else:
+                    final_mappings[name] = {} # Should not happen if _parse_response fills defaults
+            
+            return final_mappings
             
         except Exception as e:
             self.logger.error(f"LLM failure for record {record_num}: {e}\\n{traceback.format_exc()}")
@@ -76,9 +125,11 @@ class RecordProcessor:
         constraints_str = json.dumps(filtered_constraints, indent=2)
 
         # Prepare Sample Data (EDI) - Simplified
-        sample_str = ""
-        for seg, occs in self.edi_parsed.items():
-            sample_str += f"{seg}: {len(occs)} occurrences. Example: {occs[0] if occs else 'empty'}\n"
+        sample_str = "No Sample EDI File Provided."
+        if self.edi_parsed:
+            sample_str = ""
+            for seg, occs in self.edi_parsed.items():
+                sample_str += f"{seg}: {len(occs)} occurrences. Example: {occs[0] if occs else 'empty'}\\n"
 
         prompt_parts = [
             "You are an expert EDI Integration Architect.",
@@ -87,8 +138,23 @@ class RecordProcessor:
             "",
             f"### CONTEXT: Record {record_num}",
             f"Target Fields to Map: {json.dumps([f['field_name'] for f in fields])}",
-            f"Logic Descriptions (Column J): {json.dumps({f['field_name']: f.get('logic_desc', '') for f in fields})}",
-            "",
+        ]
+
+        # Prepare Logic Map - Filter out empty strings to avoid ambiguity
+        logic_map = {}
+        for f in fields:
+            l = f.get('logic_desc', '')
+            if l and str(l).strip():
+                logic_map[f['field_name']] = str(l).strip()
+        
+        # DEBUG: Log logic map
+        if record_num == "0010":
+            self.logger.info(f"Prompt Logic Map [0010]: {json.dumps(logic_map)}")
+
+        prompt_parts.append(f"Logic Descriptions (Column J): {json.dumps(logic_map)}")
+        prompt_parts.append("")
+        
+        prompt_parts.extend([
             "### STEP 1: CONSULT KNOWLEDGE BASE (Source of Truth)",
             "The following JSON defines the available fields and their rules.",
             "CRITICAL: The 'Target Fields' above might use slightly different naming or casing than the keys in this JSON.",
@@ -135,8 +201,9 @@ class RecordProcessor:
             "",
             "### STEP 5: HANDLE SPECIFIC LOGIC (Column J)",
             "For each target field in request, I have provided 'Logic Description' if available.",
-            "1. If Logic Description says 'Constant X', put X in Column C, clear B.",
-            "2. If Logic Description has conditions (e.g., 'If BEG02=DS...'):",
+            "1. IF LOGIC DESCRIPTION IS EMPTY or whitespace, IGNORE IT. Use the default mapping from the Knowledge Base (x12_mapping).",
+            "2. If Logic Description says 'Constant X', put X in Column C, clear B.",
+            "3. If Logic Description has conditions (e.g., 'If BEG02=DS...'):",
             "   - Extract all segments mentioned in the RESULT of the condition (e.g. 'take from N104' -> B='N104').",
             "   - If multiple conditions lead to different segments, list them all in B (e.g. 'N1, N2, N3').",
             "   - Perform the Validation Check described above.",
@@ -152,7 +219,7 @@ class RecordProcessor:
             "",
             "IMPORTANT: Do NOT invent mappings. Only use what the Knowledge Base provides.",
             "Strict JSON only."
-        ]
+        ])
         
 
         
@@ -269,10 +336,14 @@ class RecordProcessor:
 
         # Format Logic string
         logic = []
-        if found_in_sample:
-            logic.append(f"Sample: '{sample_val}'")
+        if self.edi_parsed:
+            if found_in_sample:
+                logic.append(f"Sample: '{sample_val}'")
+            else:
+                logic.append("Not found in sample")
         else:
-            logic.append("Not found in sample")
+             # checking specifically if we have parsed data at all
+             pass # Don't add text if no sample provided
             
         if constraint_info:
             logic.append(constraint_info)

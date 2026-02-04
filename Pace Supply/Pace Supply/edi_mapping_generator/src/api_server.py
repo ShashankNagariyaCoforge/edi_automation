@@ -26,9 +26,11 @@ class UpdateMappingRequest(BaseModel):
     value: str
 
 @app.post("/api/upload")
-async def upload_files(edi_file: UploadFile = File(...), pdf_file: UploadFile = File(...)):
-    # Read EDI content
-    edi_content = (await edi_file.read()).decode("utf-8")
+async def upload_files(edi_file: Optional[UploadFile] = File(None), pdf_file: UploadFile = File(...)):
+    # Read EDI content logic
+    edi_content = ""
+    if edi_file:
+        edi_content = (await edi_file.read()).decode("utf-8")
     
     # Save PDF temporarily
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
@@ -169,6 +171,28 @@ async def download_excel(session_id: str):
         return FileResponse(path, filename="all_mappings.xlsx", media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+from fastapi.responses import FileResponse, StreamingResponse
+from agent_engine import AgentEngine
+
+class ChatRequest(BaseModel):
+    query: str
+
+@app.post("/api/chat/{session_id}")
+async def chat_agent(session_id: str, request: ChatRequest):
+    # Check session validity
+    session = service.sessions.get(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+        
+    # Initialize ephemeral agent
+    # In a real app, we might persist agent memory, but for now it's per-request
+    agent = AgentEngine(service.ai_client, service)
+    
+    return StreamingResponse(
+        agent.run_agent_loop(session_id, request.query),
+        media_type="text/event-stream"
+    )
 
 if __name__ == "__main__":
     import uvicorn

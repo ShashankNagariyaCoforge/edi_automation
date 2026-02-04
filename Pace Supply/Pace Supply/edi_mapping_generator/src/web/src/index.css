@@ -9,8 +9,6 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background-color: #0f172a;
-  color: white;
 }
 
 /* Custom Scrollbar */
@@ -20,17 +18,17 @@ body {
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(100, 116, 139, 0.1);
   border-radius: 4px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(100, 116, 139, 0.5);
   border-radius: 4px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(100, 116, 139, 0.7);
 }
 
 .animate-spin-reverse {

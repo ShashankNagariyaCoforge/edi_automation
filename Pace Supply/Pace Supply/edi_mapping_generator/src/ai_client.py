@@ -174,6 +174,66 @@ IMPORTANT:
         else:
             return json.dumps(data)
 
+    def stream_completion(self, prompt: str, system_prompt: str = "You are an EDI mapping expert.") -> Any:
+        """"Stream completion for single prompt."""
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": prompt}
+        ]
+        return self.stream_completion_messages(messages)
+
+    def stream_completion_messages(self, messages: List[Dict[str, str]]) -> Any:
+        """Stream completion from LLM using native httpx streaming with messages list."""
+        payload = {
+            "model": self.model,
+            "messages": messages,
+            "temperature": 0.1,
+            "max_tokens": 4096,
+            "stream": True  # Enable streaming
+        }
+        
+        url = f"{self.base_url}/chat/completions"
+        
+        # We return the iterator directly to be consumed by the AgentEngine
+        # Using a context manager in the caller is tricky with generators, 
+        # so we rely on the caller to handle the stream or we yield from it.
+        try:
+            with self.client.stream("POST", url, json=payload, headers=self.headers) as response:
+                if response.status_code != 200:
+                     self.logger.error(f"Stream Error: {response.text}")
+                     yield f"Error: {response.status_code}"
+                     return
+
+                for line in response.iter_lines():
+                    if line:
+                        # OpenAI format: data: {...}
+                        if line.startswith("data: "):
+                            data_str = line[6:]
+                            if data_str.strip() == "[DONE]":
+                                break
+                            try:
+                                data = json.loads(data_str)
+                                delta = data.get("choices", [{}])[0].get("delta", {})
+                                content = delta.get("content")
+                                if content:
+                                    yield content
+                            except:
+                                pass
+                        # Fallback for non-SSE raw streaming (if custom model behaves differently)
+                        else:
+                            try:
+                                # Try parsing as direct JSON chunk if not SSE
+                                data = json.loads(line)
+                                if "response" in data: 
+                                    yield data["response"]
+                            except:
+                                # Raw text fallback
+                                yield line
+
+        except Exception as e:
+            self.logger.error(f"Streaming failed: {e}")
+            yield f"Error: {str(e)}"
+
     def _call_api(self, prompt: str) -> str:
         """Call the LLM API and return the response text."""
         return self.get_completion(prompt)
