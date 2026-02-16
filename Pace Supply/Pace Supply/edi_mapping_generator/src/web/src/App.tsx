@@ -22,7 +22,7 @@ interface MappingData {
 
 interface AppState {
   step: 'landing' | 'upload' | 'processing' | 'review';
-  flowType: '850' | '856' | null;
+  flowType: '850' | '856' | 'nestle' | null;
   sessionId: string | null;
   grid: any[][] | null;
   mappings: MappingData | any | null; // Flexible for 856
@@ -62,7 +62,7 @@ function App() {
     setError(null);
   };
 
-  const startFlow = (type: '850' | '856') => {
+  const startFlow = (type: '850' | '856' | 'nestle') => {
     setState(p => ({ ...p, flowType: type, step: 'upload' }));
     setFiles({ pdf: null }); // Clear files on switch
   };
@@ -80,9 +80,10 @@ function App() {
     if (files.pdf) formData.append('pdf_file', files.pdf);
 
     try {
-      const endpoint = state.flowType === '856'
-        ? `${API_BASE}/api/856/upload`
-        : `${API_BASE}/api/upload`;
+      let endpoint = '';
+      if (state.flowType === '856') endpoint = `${API_BASE}/api/856/upload`;
+      else if (state.flowType === 'nestle') endpoint = `${API_BASE}/api/nestle/upload`;
+      else endpoint = `${API_BASE}/api/upload`;
 
       const res = await fetch(endpoint, {
         method: 'POST',
@@ -104,9 +105,10 @@ function App() {
 
   const startGeneration = async (sessionId: string) => {
     try {
-      const endpoint = state.flowType === '856'
-        ? `${API_BASE}/api/856/generate/${sessionId}`
-        : `${API_BASE}/api/generate/${sessionId}`;
+      let endpoint = '';
+      if (state.flowType === '856') endpoint = `${API_BASE}/api/856/generate/${sessionId}`;
+      else if (state.flowType === 'nestle') endpoint = `${API_BASE}/api/nestle/generate/${sessionId}`;
+      else endpoint = `${API_BASE}/api/generate/${sessionId}`;
 
       const res = await fetch(endpoint, { method: 'POST' });
       if (!res.ok) throw new Error(`Generation failed: ${res.statusText}`);
@@ -114,7 +116,16 @@ function App() {
       const data = await res.json();
       console.log("Full Data from API:", data);
 
-      const { grid, mappings } = data.mappings;
+      let grid, mappings;
+
+      if (state.flowType === 'nestle') {
+        grid = data.grid;
+        mappings = {}; // No complex mapping object for now, just grid
+      } else {
+        grid = data.mappings.grid;
+        mappings = data.mappings.mappings;
+      }
+
       console.log("Grid received:", grid ? grid.length : 0, "rows");
 
       if (!grid || grid.length === 0) {
@@ -343,6 +354,14 @@ function App() {
                 <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">EDI 856 Flow</h3>
                 <p className="text-slate-600 dark:text-slate-400 text-sm">Advance Ship Notice Outbound. Maps Vendor Spec requirements to outbound definitions.</p>
               </button>
+
+              <button onClick={() => startFlow('nestle')} className="group relative p-8 bg-white dark:bg-[#1e293b]/50 border border-slate-200 dark:border-white/10 rounded-3xl hover:border-emerald-500/50 hover:bg-emerald-50 dark:hover:bg-emerald-600/5 transition-all text-left shadow-lg dark:shadow-none md:col-span-2">
+                <div className="w-14 h-14 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                  <FileText className="w-8 h-8" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Nestle 850 Flow</h3>
+                <p className="text-slate-600 dark:text-slate-400 text-sm">Validates Vendor Spec against Nestle/SAP Standard Mapping.</p>
+              </button>
             </div>
           </motion.div>
         )}
@@ -356,7 +375,8 @@ function App() {
           >
             <div className="text-center mb-10">
               <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-3 tracking-tight">
-                {state.flowType === '856' ? '856 ASN Workflow' : '850 PO Workflow'}
+                {state.flowType === '856' ? '856 ASN Workflow' :
+                  state.flowType === 'nestle' ? 'Nestle 850 Workflow' : '850 PO Workflow'}
               </h2>
               <p className="text-slate-600 dark:text-slate-400 text-lg">Upload required documents.</p>
             </div>
@@ -419,7 +439,8 @@ function App() {
             <div className="px-6 py-3 bg-white/50 dark:bg-[#1e293b]/50 border-b border-slate-200 dark:border-white/5 flex items-center justify-between backdrop-blur-md">
               <div className="flex items-center gap-6">
                 <div className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest border-r border-slate-300 dark:border-white/10 pr-6">
-                  {state.flowType === '856' ? '856 Editor' : '850 Editor'}
+                  {state.flowType === '856' ? '856 Editor' :
+                    state.flowType === 'nestle' ? 'Nestle Gap Analysis' : '850 Editor'}
                 </div>
                 <div className="flex items-center gap-2 text-[11px] text-slate-700 dark:text-slate-400 font-medium">
                   <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
@@ -449,9 +470,10 @@ function App() {
                   <thead className="bg-slate-100 dark:bg-[#1e293b] sticky top-0 z-20">
                     <tr>
                       <th className="w-12 border border-slate-200 dark:border-white/10 p-2 text-[10px] text-slate-700 text-center font-bold">#</th>
-                      {state.grid[0].map((header, i) => {
+                      {state.grid[0].map((header: string, i: number) => {
                         // Widen Column J (index 9) or "Meaning" (index 6 in 856)
-                        const isWide = i === 9 || (state.flowType === '856' && i === 6);
+                        // Nestle: Seg Desc (1), Elem Desc (3), Notes (7)
+                        const isWide = i === 9 || (state.flowType === '856' && i === 6) || (state.flowType === 'nestle' && (i === 1 || i === 3 || i === 7));
                         return (
                           <th key={i} className={`${isWide ? 'min-w-[300px]' : 'min-w-[150px]'} border border-slate-200 dark:border-white/10 p-3 text-xs text-slate-900 dark:text-slate-300 font-bold text-left uppercase tracking-tight`}>
                             <div className="flex flex-col gap-1">
@@ -468,8 +490,17 @@ function App() {
                       const rIdx = dataIdx + 1; // logical row index including header
                       const cellWarning = warningMap.get(rIdx);
 
+                      const isNestle = state.flowType === 'nestle';
+                      const status = isNestle ? row[8] : ''; // Status at index 8
+                      let rowClass = '';
+                      if (isNestle) {
+                        if (status === 'MATCH') rowClass = 'bg-emerald-100 dark:bg-emerald-900/40 border-l-4 border-l-emerald-500';
+                        else if (status === 'PDF_ONLY') rowClass = 'bg-amber-100 dark:bg-amber-900/40 border-l-4 border-l-amber-500';
+                        else if (status === 'STANDARD_ONLY') rowClass = 'bg-blue-100 dark:bg-blue-900/40 border-l-4 border-l-blue-500';
+                      }
+
                       return (
-                        <tr key={rIdx} className="hover:bg-slate-50 dark:hover:bg-white/[0.03] group transition-colors">
+                        <tr key={rIdx} className={`hover:bg-slate-50 dark:hover:bg-white/[0.03] group transition-colors ${rowClass}`}>
                           <td className="bg-slate-50 dark:bg-[#1e293b]/50 border border-slate-200 dark:border-white/10 text-center text-[10px] text-slate-700 font-bold py-2 px-1">
                             {rIdx}
                           </td>
@@ -479,13 +510,16 @@ function App() {
                             if (state.flowType === '850') {
                               isEditable = (cIdx === 1 || cIdx === 2);
                             } else if (state.flowType === '856') {
-                              // New Columns:
-                              // 0: Seg, 1: Occ, 2: Elem, 3: Type, 4: Source, 5: Hardcode, 6: Meaning, 7: Req
-                              // Allow editing Type(3), Source(4), Hardcode(5), Meaning(6)
                               isEditable = [3, 4, 5, 6].includes(cIdx);
+                            } else if (state.flowType === 'nestle') {
+                              isEditable = false;
                             }
 
-                            // ^^ might trigger falsely for 856 "Record" field, but 856 col 0 is "ST01" etc.
+                            // Interactive Columns for Modal View:
+                            // Nestle: Elem Desc (3), Notes (7)
+                            const isInteractive = (cIdx === 9 ||
+                              (state.flowType === '856' && cIdx === 6) ||
+                              (state.flowType === 'nestle' && (cIdx === 3 || cIdx === 7)));
 
                             return (
                               <td
@@ -494,13 +528,12 @@ function App() {
                                 className={`border border-slate-200 dark:border-white/10 p-0 relative group/cell ${(cellWarning && isEditable) ? 'bg-red-500/25 border-red-500/50' : ''}`}
                               >
                                 <input
-                                  key={cell} // Force re-render when value changes externally (e.g. Copilot update)
+                                  key={cell}
                                   type="text"
                                   defaultValue={cell || ""}
                                   readOnly={!isEditable}
                                   onClick={() => {
-                                    // Show full content for Logic (850 Col J / Index 9) or Meaning (856 Col G / Index 6)
-                                    if (cIdx === 9 || (state.flowType === '856' && cIdx === 6)) {
+                                    if (isInteractive) {
                                       setViewingCell({
                                         title: state.grid![0][cIdx],
                                         content: cell
@@ -512,8 +545,8 @@ function App() {
                                       handleCellUpdate(rIdx, cIdx, e.target.value);
                                     }
                                   }}
-                                  className={`w-full min-h-[40px] px-3 py-2 outline-none bg-transparent transition-all 
-                                    ${(cIdx === 9 || (state.flowType === '856' && cIdx === 6)) ? 'cursor-pointer hover:bg-blue-50/50 dark:hover:bg-blue-900/20' : ''}
+                                  className={`w-full min-h-[40px] px-3 py-2 outline-none bg-transparent transition-all
+                                    ${isInteractive ? 'cursor-pointer hover:bg-black/5 dark:hover:bg-white/5' : ''}
                                     ${isEditable ? 'text-black font-medium dark:text-blue-50 focus:bg-blue-50 dark:focus:bg-blue-500/10 focus:ring-1 focus:ring-blue-500/30' :
                                       'text-slate-600'
                                     }`}

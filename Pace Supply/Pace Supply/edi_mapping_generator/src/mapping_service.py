@@ -21,6 +21,7 @@ from logger import get_logger
 # 856 Imports
 from flow_856.pdf_processor import PdfProcessor856
 from flow_856.mapping_engine import MappingEngine856
+from flow_nestle.service import NestleService
 from flow_856.excel_builder import ExcelBuilder856
 
 # Load environment variables
@@ -51,6 +52,14 @@ class MappingService:
         self.parallel_executor = ParallelExecutor(max_threads=config.get("max_threads", 5))
         # Store sessions in memory for now
         self.sessions: Dict[str, Any] = {}
+        
+        # Initialize Sub-Services
+        self.engine_856 = MappingEngine856(self.ai_client)
+        try:
+            self.nestle_service = NestleService(self.ai_client)
+        except Exception as e:
+            logger.error(f"Failed to initialize NestleService: {e}")
+            self.nestle_service = None
 
     def create_session(self, edi_content: str, pdf_path: str) -> str:
         import uuid
@@ -241,7 +250,10 @@ class MappingService:
         segments = proc.extract_mandatory_segments(session["pdf_path"])
         
         # 2. Map fields
-        engine = MappingEngine856(self.ai_client)
+        # Removed: self.nestle_service = NestleService(self.ai_client)
+        # Removed: self.engine_856 = MappingEngine856(self.ai_client)
+        engine = MappingEngine856(self.ai_client) # Kept local initialization as per original code
+        
         # Load Definitions - Need to locate file
         # Assuming typical location
         # Try both 856 subdir and input dir
@@ -327,6 +339,21 @@ class MappingService:
         session["status"] = "completed"
         return {"grid": grid, "mappings": mapping_result}
 
+    def create_session_nestle(self, pdf_path: str) -> str:
+        """Delegate to Nestle Service"""
+        try:
+             session_id = self.nestle_service.create_session(pdf_path)
+             # Register session in main service registry for unified access (e.g. Chat)
+             self.sessions[session_id] = self.nestle_service.get_session(session_id)
+             return session_id
+        except Exception as e:
+             self.logger.error(f"Error creating nestle session: {e}", exc_info=True)
+             raise
+
+    def generate_mapping_nestle(self, session_id: str) -> List[Dict[str, Any]]:
+        """Delegate to Nestle Service"""
+        return self.nestle_service.generate_mapping(session_id)
+
     def generate_excel(self, session_id: str) -> str:
         session = self.sessions.get(session_id)
         if not session:
@@ -343,6 +370,9 @@ class MappingService:
             final_path = builder.build_excel(mappings, str(Path(output_path).parent))
             session["output_file"] = final_path
             return final_path
+        elif session.get("type") == "nestle_850":
+            # Delegate to Nestle Service
+            return self.nestle_service.generate_excel(session_id)
         else:
             # Existing 850 Logic
             # Create temp output

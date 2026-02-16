@@ -54,17 +54,19 @@ class PdfConstraintExtractor:
         try:
             response = self.ai_client.get_completion(
                 prompt, 
-                system_prompt="You are an Expert Technical Specification Analyst. Your job is to extract strict validation rules (Knowledge Base) from vendor PDFs."
+                system_prompt="You are a Senior EDI Implementation Specialist. Your job is to extract strict validation rules from vendor PDFs."
             )
             
             # 5. Parse JSON
-            constraints = self._parse_json(response)
-            self.logger.info(f"Extracted constraints for {len(constraints.get('segments', {}))} segments")
-            return constraints
+            data = self._parse_json(response)
+            # Extractor returns {"mandatory_segments": [...]}. We return the list directly.
+            segments = data.get("mandatory_segments", [])
+            self.logger.info(f"Extracted constraints for {len(segments)} segments")
+            return segments
             
         except Exception as e:
             self.logger.error(f"Error extracting constraints: {e}")
-            return {"segments": {}}
+            return []
 
     def _build_constraint_prompt(self, pdf_text: str) -> str:
         return f"""
@@ -74,45 +76,40 @@ Analyze the following EDI Implementation Guide (PDF Content) to build a "Rules K
 {pdf_text}
 
 ## GOAL:
-Extract a JSON object summarizing constraints for segments and elements.
-Focus on:
-1. Mandatory Segments (Requirement = "M" or "Mandatory")
-2. Allowed Values for specific elements (e.g. "BEG01 must be '00'")
-3. Usage rules (e.g. "REF*DP" is required)
+Identify ALL segments that are marked as 'Mandatory' (M) or 'Must Use'.
+For each Mandatory segment, identify individual Fields/Elements that are 'Must Use' (M) or 'Required' (R).
+
+Ignoring Optional segments (O) for now, unless they are critical conditional segments.
+Focus heavily on gathering "Must Use" fields.
 
 ## OUTPUT FORMAT:
-JSON only.
+Strict JSON.
 {{
-  "segments": {{
-    "SEGMENT_ID": {{
-        "req": "M" or "O",
-        "elements": {{
-            "INDEX": {{ "values": ["VAL1", "VAL2"] }} 
-        }}
+  "mandatory_segments": [
+    {{
+      "segment": "SegmentID (e.g. BEG)",
+      "description": "Segment Description",
+      "fields": [
+         {{
+            "id": "FieldID (e.g. BEG01)",
+            "description": "Field Description",
+            "values": ["VAL1", "VAL2"] 
+         }},
+         {{
+            "id": "BEG02",
+            "description": "Purchase Order Type Code",
+            "values": ["NE"] 
+         }}
+      ]
     }}
-  }}
+  ]
 }}
 
-Example:
-{{
-  "segments": {{
-    "BEG": {{
-      "req": "M",
-      "elements": {{
-        "01": {{ "values": ["00"] }},
-        "02": {{ "values": ["NE", "DS"] }}
-      }}
-    }},
-    "DTM": {{
-      "req": "O",
-      "elements": {{
-        "01": {{ "values": ["002", "010"] }}
-      }}
-    }}
-  }}
-}}
-
-Ignore pure formatting or boilerplate text. Return ONLY the JSON.
+INSTRUCTIONS:
+1. "values": If the spec says "Use '00' for Original", put ["00"]. If dynamic, leave empty [].
+2. Identify Header, Hierarchy, and Detail segments.
+3. Be exhaustive for Mandatory segments.
+4. Return ONLY valid JSON.
 """
 
     def _parse_json(self, response: str) -> Dict[str, Any]:

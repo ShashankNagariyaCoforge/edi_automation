@@ -78,6 +78,34 @@ async def generate_mappings_856(session_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# --- Nestle 850 Endpoints ---
+
+@app.post("/api/nestle/upload")
+async def upload_files_nestle(pdf_file: UploadFile = File(...)):
+    # Save PDF temporarily
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+        shutil.copyfileobj(pdf_file.file, tmp)
+        pdf_path = tmp.name
+        
+    try:
+        session_id = service.create_session_nestle(pdf_path)
+        return {"session_id": session_id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/nestle/generate/{session_id}")
+async def generate_mappings_nestle(session_id: str):
+    try:
+        # returns grid rows
+        grid = service.generate_mapping_nestle(session_id)
+        return {"status": "success", "grid": grid, "version": "v1.0.nestle"}
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
 @app.post("/api/mappings/{session_id}/update")
 async def update_mapping_field(session_id: str, request: UpdateMappingRequest):
     try:
