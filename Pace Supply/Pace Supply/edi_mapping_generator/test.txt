@@ -1,0 +1,18 @@
+Now we need to do some big changes in netsle flow-
+1. Earlier we were considering only mandatory segments and must use elements from the pdf spec but now you need to fetch all the segments, their description, their status(option/mandatory or some other) and all of their elements and their description and their status (mandatory/option or some other)
+take everything in a json from pdf because you will be needing it alot.
+
+2. earlier you were showing all the fields of standard mapping and pdf spec into output grid but now you need to see @GLB_RGTX_ORDERSCPG_COMPLETE.xlsx file. it has all the ERP fields used by my client of SAP-
+- you first need to read this file completely and take all of it's data into dataframe. 
+- then see what all element's mapping we already have as an standard mapping in @EDI850_to_ORDERS05_Mapping_Standard.xlsx file.
+ - if mapping is in standard mapping   then check if that X12 element and  segment is in PDF spec json. 
+     - if it's in pdf spec json then see it's desciption and examples also. highlight if you find any descripensies,
+     -if it's not in pdf spec json then just put whatever description you see in the standard mapping sheet and put it in output grid. 
+
+- if element is not in standard mapping then check it's description and try to do sementic matching with the pdf descriptions of all the fields and see if any suitable field can be mapped. 
+
+you need to highlight it properly everywhere from where your mapping is coming whether it's from standard mapping or from pdf. 
+
+you need to keep many columns in output grid so it is well described there. use AI wherever you can to provide the best result. 
+
+in your output grid all the elements should be visible from the

@@ -45,6 +45,7 @@ TOOLS AVAILABLE:
 2. SEARCH_SPEC: Queries the Vendor PDF Spec.
 3. UPDATE_ROW: Updates a specific cell. Format: UPDATE_ROW(row_idx, col_idx, value). row_idx is 0-indexed.
 4. EXPLAIN_EDI: General knowledge.
+5. GET_NESTLE_FLAGS: Returns all rows where the Mapping Rule column is flagged because the PDF specifies values not covered by the mapping rule. Each flag includes the row index, X12 element, and a reason explaining the discrepancy.
 
 PROTOCOL:
 1. THINK: Analyze the request.
@@ -58,9 +59,11 @@ Example: `UPDATE_ROW 5 3 BEG03 00`
 You MUST verify the RowIndex matches the ElementTag (e.g. BEG03) you see in the READ_GRID output. The system will reject updates if they do not match.
     - SEARCH_SPEC [Query]: Searches the PDF specification for answers.
     - GET_FLAGGED_ROWS: Returns a list of all rows that are highlighted in RED (Validation Errors). Use this to identify what needs fixing.
+    - GET_NESTLE_FLAGS: Returns all ORANGE-flagged rows with PDF value discrepancies.
 
 VISUAL INDICATORS:
 - If the READ_GRID output shows `[FLAGGED: ...]` next to a row, this means the row is HIGHLIGHTED IN RED in the user interface due to a validation error. Explicitly mention "highlighted in red" when discussing these fields.
+- ORANGE-highlighted cells in the Mapping Rule column indicate that the vendor PDF specifies value codes not covered by the standard mapping rule. Use GET_NESTLE_FLAGS to see these.
 """
         
         # We allow up to 7 turns (Think -> Act -> Observe -> Think -> Act -> Observe -> Answer)
@@ -168,6 +171,9 @@ VISUAL INDICATORS:
 
                 elif action_name == "GET_FLAGGED_ROWS":
                      observation = self._tool_get_flagged_rows(session_id)
+
+                elif action_name == "GET_NESTLE_FLAGS":
+                     observation = self._tool_get_nestle_flags(session_id)
                 
                 yield json.dumps({"type": "thought", "content": f"\nObservation: {str(observation)[:300]}...\n"})
                 
@@ -312,3 +318,40 @@ VISUAL INDICATORS:
         grid[row_idx][col_idx] = value
         
         return f"Successfully updated Row {row_idx} ({verify_tag}), Col {col_idx}. Old: '{old_val}' -> New: '{value}'"
+
+    def _tool_get_nestle_flags(self, session_id: str) -> str:
+        """Returns all Nestle rows flagged for PDF value discrepancies (orange highlights)."""
+        session = self.mapping_service.sessions.get(session_id)
+        if not session:
+            return "Session lost."
+
+        # Check nestle session flags
+        nestle_session = None
+        if hasattr(self.mapping_service, 'nestle_service'):
+            for sid, sess in self.mapping_service.nestle_service.sessions.items():
+                if sid == session_id or session.get("nestle_session_id") == sid:
+                    nestle_session = sess
+                    break
+
+        flags = (nestle_session or session).get("flags", {})
+        grid = (nestle_session or session).get("grid", [])
+
+        if not flags:
+            return "No orange-flagged cells found. All standard mapping rules appear to cover the PDF-specified values."
+
+        flagged_items = []
+        for row_idx_str, flag_info in flags.items():
+            row_idx = int(row_idx_str)
+            reason = flag_info.get("reason", "")
+            # Get context from grid
+            if row_idx < len(grid):
+                row = grid[row_idx]
+                x12_elem = row[7] if len(row) > 7 else "?"
+                mapping_rule = row[9] if len(row) > 9 else "?"
+                flagged_items.append(
+                    f"Row {row_idx}: {x12_elem} — Mapping Rule: \"{mapping_rule}\" — Flag: {reason}"
+                )
+            else:
+                flagged_items.append(f"Row {row_idx}: {reason}")
+
+        return f"ORANGE-FLAGGED CELLS ({len(flagged_items)} total):\n" + "\n".join(flagged_items)

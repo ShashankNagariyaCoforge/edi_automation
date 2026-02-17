@@ -8,7 +8,7 @@ llm_base_url: "https://quasarmarket.coforge.com/qag/llmrouter-api/v2"
 llm_model: "Claude-Sonnet-4"
 
 # API Key from your company's portal
-llm_api_key: "698302ea-5b8d-41e3-bf24-0593147cd515"
+llm_api_key: "b9f8329d-b7be-42bc-a718-ed09f20ef62a"
 
 # Authentication type: "bearer" (default), "x-api-key", "basic", or "custom"
 # - bearer: Uses "Authorization: Bearer <key>" header

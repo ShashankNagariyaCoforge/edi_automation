@@ -6,6 +6,10 @@ import shutil
 import os
 import tempfile
 from mapping_service import MappingService
+from logger import setup_logger
+
+# Setup logging
+setup_logger()
 
 app = FastAPI(title="EDI Mapping Dashboard API")
 
@@ -96,9 +100,9 @@ async def upload_files_nestle(pdf_file: UploadFile = File(...)):
 @app.post("/api/nestle/generate/{session_id}")
 async def generate_mappings_nestle(session_id: str):
     try:
-        # returns grid rows
-        grid = service.generate_mapping_nestle(session_id)
-        return {"status": "success", "grid": grid, "version": "v1.0.nestle"}
+        # returns {"grid": [...], "flags": {...}}
+        result = service.generate_mapping_nestle(session_id)
+        return {"status": "success", "grid": result["grid"], "flags": result.get("flags", {}), "version": "v1.0.nestle"}
     except Exception as e:
         import traceback
         traceback.print_exc()

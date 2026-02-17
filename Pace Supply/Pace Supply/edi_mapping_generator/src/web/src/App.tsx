@@ -27,6 +27,7 @@ interface AppState {
   grid: any[][] | null;
   mappings: MappingData | any | null; // Flexible for 856
   isCopilotOpen?: boolean;
+  nestleFlags?: Record<number, { col: number; reason: string }>; // row_idx → flag info
 }
 
 function App() {
@@ -36,7 +37,8 @@ function App() {
     sessionId: null,
     grid: null,
     mappings: null,
-    isCopilotOpen: false
+    isCopilotOpen: false,
+    nestleFlags: {}
   });
 
   const [files, setFiles] = useState<{ pdf: File | null }>({
@@ -56,7 +58,8 @@ function App() {
       sessionId: null,
       grid: null,
       mappings: null,
-      isCopilotOpen: false
+      isCopilotOpen: false,
+      nestleFlags: {}
     });
     setFiles({ pdf: null });
     setError(null);
@@ -117,21 +120,26 @@ function App() {
       console.log("Full Data from API:", data);
 
       let grid, mappings;
+      let nestleFlags = {};
 
       if (state.flowType === 'nestle') {
         grid = data.grid;
-        mappings = {}; // No complex mapping object for now, just grid
+        mappings = {};
+        nestleFlags = data.flags || {};
       } else {
         grid = data.mappings.grid;
         mappings = data.mappings.mappings;
       }
 
       console.log("Grid received:", grid ? grid.length : 0, "rows");
+      if (nestleFlags && Object.keys(nestleFlags).length > 0) {
+        console.log("Nestle flags:", Object.keys(nestleFlags).length, "flagged rows");
+      }
 
       if (!grid || grid.length === 0) {
         throw new Error("No grid data returned. Please check input files.");
       }
-      setState(prev => ({ ...prev, grid, mappings, step: 'review' }));
+      setState(prev => ({ ...prev, grid, mappings, nestleFlags, step: 'review' }));
     } catch (err: any) {
       console.error("Generation failed", err);
       setError(err.message || "Failed to generate mappings.");
@@ -471,9 +479,10 @@ function App() {
                     <tr>
                       <th className="w-12 border border-slate-200 dark:border-white/10 p-2 text-[10px] text-slate-700 text-center font-bold">#</th>
                       {state.grid[0].map((header: string, i: number) => {
-                        // Widen Column J (index 9) or "Meaning" (index 6 in 856)
-                        // Nestle: Seg Desc (1), Elem Desc (3), Notes (7)
-                        const isWide = i === 9 || (state.flowType === '856' && i === 6) || (state.flowType === 'nestle' && (i === 1 || i === 3 || i === 7));
+                        // Widen certain columns based on flow
+                        // Nestle 16-col: SAP Seg Desc(1), SAP Field Desc(3), X12 Elem Desc(8), Mapping Rule(9), Notes(15)
+                        const isWide = i === 9 || (state.flowType === '856' && i === 6) ||
+                          (state.flowType === 'nestle' && [1, 3, 8, 9, 15].includes(i));
                         return (
                           <th key={i} className={`${isWide ? 'min-w-[300px]' : 'min-w-[150px]'} border border-slate-200 dark:border-white/10 p-3 text-xs text-slate-900 dark:text-slate-300 font-bold text-left uppercase tracking-tight`}>
                             <div className="flex flex-col gap-1">
@@ -491,12 +500,13 @@ function App() {
                       const cellWarning = warningMap.get(rIdx);
 
                       const isNestle = state.flowType === 'nestle';
-                      const status = isNestle ? row[8] : ''; // Status at index 8
+                      const mappingSource = isNestle ? row[13] : ''; // Mapping Source at index 13
                       let rowClass = '';
                       if (isNestle) {
-                        if (status === 'MATCH') rowClass = 'bg-emerald-100 dark:bg-emerald-900/40 border-l-4 border-l-emerald-500';
-                        else if (status === 'PDF_ONLY') rowClass = 'bg-amber-100 dark:bg-amber-900/40 border-l-4 border-l-amber-500';
-                        else if (status === 'STANDARD_ONLY') rowClass = 'bg-blue-100 dark:bg-blue-900/40 border-l-4 border-l-blue-500';
+                        if (mappingSource === 'STANDARD+PDF') rowClass = 'bg-emerald-50 dark:bg-emerald-900/30 border-l-4 border-l-emerald-500';
+                        else if (mappingSource === 'STANDARD') rowClass = 'bg-blue-50 dark:bg-blue-900/30 border-l-4 border-l-blue-500';
+                        else if (mappingSource === 'AI_MATCH') rowClass = 'bg-amber-50 dark:bg-amber-900/30 border-l-4 border-l-amber-500';
+                        else if (mappingSource === 'UNMAPPED') rowClass = 'bg-slate-50 dark:bg-slate-800/50 border-l-4 border-l-slate-400';
                       }
 
                       return (
@@ -516,16 +526,24 @@ function App() {
                             }
 
                             // Interactive Columns for Modal View:
-                            // Nestle: Elem Desc (3), Notes (7)
+                            // Nestle 16-col: SAP Field Desc(3), X12 Elem Desc(8), Mapping Rule(9), Notes(15)
                             const isInteractive = (cIdx === 9 ||
                               (state.flowType === '856' && cIdx === 6) ||
-                              (state.flowType === 'nestle' && (cIdx === 3 || cIdx === 7)));
+                              (state.flowType === 'nestle' && [3, 8, 9, 15].includes(cIdx)));
 
                             return (
                               <td
                                 key={cIdx}
-                                title={cellWarning}
-                                className={`border border-slate-200 dark:border-white/10 p-0 relative group/cell ${(cellWarning && isEditable) ? 'bg-red-500/25 border-red-500/50' : ''}`}
+                                title={
+                                  // Show flag reason as tooltip for flagged Mapping Rule cells
+                                  (isNestle && state.nestleFlags?.[rIdx]?.col === cIdx)
+                                    ? `⚠ ${state.nestleFlags[rIdx].reason}`
+                                    : cellWarning || undefined
+                                }
+                                className={`border border-slate-200 dark:border-white/10 p-0 relative group/cell
+                                  ${(cellWarning && isEditable) ? 'bg-red-500/25 border-red-500/50' : ''}
+                                  ${(isNestle && state.nestleFlags?.[rIdx]?.col === cIdx) ? 'bg-orange-200 dark:bg-orange-500/30 border-orange-400 dark:border-orange-500/50 ring-1 ring-orange-400/50' : ''}
+                                `}
                               >
                                 <input
                                   key={cell}
@@ -539,6 +557,13 @@ function App() {
                                         content: cell
                                       });
                                     }
+                                    // Also allow clicking flagged cell to see full reason
+                                    if (isNestle && state.nestleFlags?.[rIdx]?.col === cIdx) {
+                                      setViewingCell({
+                                        title: `⚠ Flag: ${state.grid![0][cIdx]}`,
+                                        content: `Mapping Rule:\n${cell}\n\nFlag Reason:\n${state.nestleFlags[rIdx].reason}`
+                                      });
+                                    }
                                   }}
                                   onBlur={(e) => {
                                     if (e.target.value !== cell) {
@@ -547,6 +572,7 @@ function App() {
                                   }}
                                   className={`w-full min-h-[40px] px-3 py-2 outline-none bg-transparent transition-all
                                     ${isInteractive ? 'cursor-pointer hover:bg-black/5 dark:hover:bg-white/5' : ''}
+                                    ${(isNestle && state.nestleFlags?.[rIdx]?.col === cIdx) ? 'cursor-pointer text-orange-800 dark:text-orange-200 font-medium' : ''}
                                     ${isEditable ? 'text-black font-medium dark:text-blue-50 focus:bg-blue-50 dark:focus:bg-blue-500/10 focus:ring-1 focus:ring-blue-500/30' :
                                       'text-slate-600'
                                     }`}
@@ -567,6 +593,14 @@ function App() {
               <div className="flex gap-4">
                 <span>Rows: <span className="text-slate-700 dark:text-slate-300">{state.grid ? state.grid.length - 1 : 0}</span></span>
               </div>
+              {state.flowType === 'nestle' && (
+                <div className="flex items-center gap-4">
+                  <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-emerald-500"></span> Standard+PDF</span>
+                  <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-blue-500"></span> Standard Only</span>
+                  <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-amber-500"></span> AI Match</span>
+                  <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-slate-400"></span> Unmapped</span>
+                </div>
+              )}
               <div className="flex items-center gap-1">
                 <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
                 Ready for Export

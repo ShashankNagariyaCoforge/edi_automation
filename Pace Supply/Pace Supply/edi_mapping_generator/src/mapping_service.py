@@ -350,7 +350,7 @@ class MappingService:
              self.logger.error(f"Error creating nestle session: {e}", exc_info=True)
              raise
 
-    def generate_mapping_nestle(self, session_id: str) -> List[Dict[str, Any]]:
+    def generate_mapping_nestle(self, session_id: str) -> Dict[str, Any]:
         """Delegate to Nestle Service"""
         return self.nestle_service.generate_mapping(session_id)
 
